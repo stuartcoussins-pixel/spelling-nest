@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="en-GB">
 <meta name="description" content="Weekly spelling practice for primary school children.">
 <title>Spelling Nest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,7 +142,7 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
 .hold.holding .fill{transition:transform 1.5s linear;transform:scaleX(1)}
 .hold span{position:relative}
 label.lbl{font-weight:700;font-size:.92rem;display:block;margin-bottom:6px}
-input[type=text],input[type=email],textarea{width:100%;font:inherit;font-size:1rem;color:var(--ink);background:var(--ground);border:1.5px solid var(--line);border-radius:14px;padding:11px 13px}
+input[type=text],input[type=email],input[type=date],textarea{width:100%;font:inherit;font-size:1rem;color:var(--ink);background:var(--ground);border:1.5px solid var(--line);border-radius:14px;padding:11px 13px}
 textarea{min-height:96px;resize:vertical}
 .draft .chip button{border:0;background:none;padding:0 0 0 2px;font-size:1rem;color:var(--ink-soft);line-height:1}
 .listrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -323,7 +325,11 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const APP_VERSION='1.1';
 const today=()=>dayStr(new Date());
+const prettyDate=ds=>{try{const [y,m,d]=String(ds).split('-').map(Number);const dt=new Date(y,m-1,d);return dt.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}catch(e){return String(ds||'')}};
+const daysUntil=ds=>{try{const [y,m,d]=String(ds).split('-').map(Number);const a=new Date(y,m-1,d);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);return Math.round((a-b)/86400000)}catch(e){return null}};
+const countdownText=ds=>{const n=daysUntil(ds);if(n===null)return '';if(n>1)return n+' sleeps until your spelling test';if(n===1)return 'Your spelling test is tomorrow';if(n===0)return 'Your spelling test is today. Good luck!';return ''};
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const ICON={
@@ -398,7 +404,7 @@ function persistLists(){
   const pid=S.pid; if(!user||!pid) return; const snapshot=JSON.parse(JSON.stringify(S.lists)); const gone=[...deletedLists]; deletedLists.clear();
   later('lists_'+pid,async()=>{
     for(const id of gone) await run(sb.from('word_lists').delete().eq('id',id),'word lists');
-    const rows=Object.entries(snapshot.lists||{}).map(([id,l])=>({id,parent_id:user.id,speller_id:pid,title:(l.title||'Spellings').slice(0,80),words:l.words||[],is_active:id===snapshot.activeListId,created_at:new Date(l.createdAt||Date.now()).toISOString()}));
+    const rows=Object.entries(snapshot.lists||{}).map(([id,l])=>({id,parent_id:user.id,speller_id:pid,title:(l.title||'Spellings').slice(0,80),words:l.words||[],is_active:id===snapshot.activeListId,test_date:l.testDate||null,created_at:new Date(l.createdAt||Date.now()).toISOString()}));
     if(rows.length) await run(sb.from('word_lists').upsert(rows),'word lists');
   });
 }
@@ -459,7 +465,7 @@ function afterAccount(){
   refresh();
 }
 async function selectProfile(pid,keep){
-  S.pid=pid; unlocked=false; draft={id:null,title:'',words:[]}; confirmDel=null; confirmReset=false; confirmProfDel=false;
+  S.pid=pid; unlocked=false; draft={id:null,title:'',words:[],testDate:''}; confirmDel=null; confirmReset=false; confirmProfDel=false;
   if(!keep){
     S.lists=blankLists(); S.progress=blankProgress();
     view='splash'; renderChrome(); renderView();
@@ -471,7 +477,7 @@ async function selectProfile(pid,keep){
       ]);
       if(S.pid!==pid) return;
       const L={lists:{},activeListId:null};
-      (lists||[]).forEach(r=>{L.lists[r.id]={title:r.title,words:r.words||[],createdAt:Date.parse(r.created_at)||Date.now()};if(r.is_active)L.activeListId=r.id});
+      (lists||[]).forEach(r=>{L.lists[r.id]={title:r.title,words:r.words||[],createdAt:Date.parse(r.created_at)||Date.now(),testDate:r.test_date||''};if(r.is_active)L.activeListId=r.id});
       S.lists=L;
       S.progress=Object.assign(blankProgress(),prog?{xp:prog.xp||0,lessons:prog.lessons||0,cleanHear:prog.clean_hear||0,days:(prog.days||[]).map(String),badges:plain(prog.badges)||{},words:plain(prog.words)||{}}:{});
       S.progress.history=(hist||[]).slice().reverse().map(h=>({at:Date.parse(h.created_at)||Date.now(),list:h.list_title||'',practice:!!h.practice,reason:h.reason,score:h.score,total:h.total,stars:h.stars,xp:h.xp,secs:h.seconds,missed:h.missed||[]}));
@@ -550,8 +556,8 @@ const BADGES=[
 function awardBadges(ctx){const P=S.progress;const got=[];BADGES.forEach(b=>{if(!P.badges[b.id]&&b.test(P,ctx)){P.badges[b.id]=today();got.push(b)}});return got}
 
 /* ---------- chrome ---------- */
-let view='splash', unlocked=false, progTab='working', draft={id:null,title:'',words:[]}, scanning=false, confirmDel=null, confirmReset=false, confirmProfDel=false;
-let ob={step:'welcome',name:'',year:null,pin1:'',adding:false};
+let view='splash', unlocked=false, progTab='working', draft={id:null,title:'',words:[],testDate:''}, scanning=false, confirmDel=null, confirmReset=false, confirmProfDel=false;
+let ob={step:'welcome',name:'',year:null,pin1:'',adding:false,words:[],testDate:'',wordErr:''};
 let pinFlow='gate', pinEntry='', pinTemp='', pinErr='', changingPin=false;
 const TAB_VIEWS=['play','progress','badges','grown'];
 function renderChrome(){
@@ -588,8 +594,20 @@ function renderView(){
 }
 
 let authSent=false;
+let fbKind='idea', fbText='', fbMsg='', fbSending=false;
+async function sendFeedback(){
+  const ta=$('#fb-text'); const msg=(ta&&ta.value||'').trim();
+  if(!msg){fbMsg='Type a message first.';renderView();return}
+  if(!user){fbMsg='Sign in first so we can reply.';renderView();return}
+  fbText=msg; fbSending=true; fbMsg=''; renderView();
+  try{
+    await run(sb.from('feedback').insert({parent_id:user.id,kind:fbKind,message:msg.slice(0,2000),app_version:APP_VERSION}),'your message');
+    fbText=''; fbMsg='Thank you. Your message has been sent.';
+  }catch(e){ fbMsg='That could not be sent. Please try again, or email info@spellingnest.co.uk.'; }
+  fbSending=false; renderView();
+}
 function signinView(){
-  return `<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Pip the owl.</p>
+  return `<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Kit the owl.</p>
   <section class="card stack"><div><h2 style="font-size:1.2rem">Grown ups: sign in</h2><p class="note" style="margin-top:4px">We email you a sign in link. There is no password to remember.</p></div>
   <div><label class="lbl" for="si-email">Email address</label><input type="email" id="si-email" autocomplete="email" inputmode="email" value="${esc(authEmail)}" data-autofocus></div>
   <p class="err" id="si-err" role="alert" style="text-align:left">${esc(authMsg)}</p>
@@ -604,20 +622,21 @@ function consentView(){
   <button class="ghost" data-act="signout" style="justify-content:center">Use a different email address</button></section></div>`;
 }
 function startOnboarding(adding){
-  ob={step:'welcome',name:'',year:null,pin1:'',adding:!!adding}; pinEntry=''; pinErr='';
+  ob={step:'welcome',name:'',year:null,pin1:'',adding:!!adding,words:[],testDate:'',wordErr:''}; pinEntry=''; pinErr='';
   view='onboard'; renderChrome(); renderView(); window.scrollTo(0,0);
 }
-function obSteps(){const s=['welcome','name','year'];if(!S.account.pin)s.push('pin');s.push('done');return s}
+function obSteps(){const s=['welcome','name','year'];if(!S.account.pin)s.push('pin');s.push('words');s.push('done');return s}
 function onboardView(){
   const steps=obSteps(); const at=steps.indexOf(ob.step==='pin2'?'pin':ob.step);
   const dots=`<div class="obsteps" aria-hidden="true">${steps.map((s,i)=>`<i class="${i<=at?'on':''}"></i>`).join('')}</div>`;
   const nm=esc(ob.name);
   switch(ob.step){
-    case 'welcome': return `<div class="onboard">${dots}${owl('cheer')}<h1>${ob.adding?'Add a new speller':'Welcome to Spelling Nest'}</h1><p class="lead">Practise your school spellings with Pip the owl. Setting up takes about a minute.</p><button class="btn block pink" data-act="ob-next" data-autofocus>Let’s get started</button>${ob.adding?'<button class="ghost" style="justify-content:center" data-act="ob-cancel">Back to profiles</button>':''}</div>`;
+    case 'welcome': return `<div class="onboard">${dots}${owl('cheer')}<h1>${ob.adding?'Add a new speller':'Welcome to Spelling Nest'}</h1><p class="lead">Practise your school spellings with Kit the owl. Setting up takes about a minute.</p><button class="btn block pink" data-act="ob-next" data-autofocus>Let’s get started</button>${ob.adding?'<button class="ghost" style="justify-content:center" data-act="ob-cancel">Back to profiles</button>':''}</div>`;
     case 'name': return `<div class="onboard">${dots}${owl()}<h1>What’s your name?</h1><p class="lead">Use a first name or nickname only.</p><div><label class="lbl" for="ob-name" style="text-align:center">First name or nickname</label><input type="text" id="ob-name" class="bigin" maxlength="20" autocomplete="off" value="${nm}" data-autofocus></div><p class="err" id="ob-err"></p><button class="btn block" data-act="ob-name">Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
     case 'year': return `<div class="onboard">${dots}${owl()}<h1>Which school year are you in, ${nm}?</h1><div class="yeargrid" role="group" aria-label="School year">${YEARS.map(y=>`<button data-year="${y}" aria-pressed="${ob.year===y}" ${y==='Reception'?'class="wide"':''}>${y}</button>`).join('')}<button class="wide" data-year="none" aria-pressed="${ob.year==='none'}">I’d rather not say</button></div><button class="btn block" data-act="ob-year" ${ob.year?'':'disabled'}>Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
     case 'pin': case 'pin2': return `<div class="onboard">${dots}<h1>${ob.step==='pin'?'Grown up: choose a PIN':'Type the PIN again'}</h1><p class="lead">${ob.step==='pin'?'Please ask a grown up to help. This 4 digit PIN locks the Grown ups area, where word lists and settings live.':'Just to check it matches.'}</p>${pinPad()}<button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
-    case 'done': return `<div class="onboard">${dots}${owl('cheer')}<h1>You’re all set, ${nm}!</h1><p class="lead">Your first word list is ready to try. A grown up can add this week’s school words in Grown ups.</p><button class="btn block pink" data-act="ob-finish" data-autofocus>Start practising</button></div>`;
+    case 'words': return `<div class="onboard">${dots}${owl()}<h1>Grown ups: this week’s spellings</h1><p class="lead">Type or paste the words from school, then choose the day of the test. You can skip this and add them later.</p><section class="card stack" style="text-align:left"><div><label class="lbl" for="ob-words">This week’s words</label><textarea id="ob-words" placeholder="charge, bulge, village">${esc((ob.words||[]).join(', '))}</textarea></div><div><label class="lbl" for="ob-date">Day of the spelling test</label><input type="date" id="ob-date" value="${esc(ob.testDate||'')}" min="${esc(today())}"></div><p class="err" id="ob-werr">${esc(ob.wordErr||'')}</p><button class="btn block" data-act="ob-words">Save these words</button><button class="ghost" style="justify-content:center" data-act="ob-skipwords">Skip for now</button></section><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
+    case 'done': return `<div class="onboard">${dots}${owl('cheer')}<h1>You’re all set, ${nm}!</h1><p class="lead">${(ob.words&&ob.words.length)?`Your ${ob.words.length} words are ready${ob.testDate?`, with the test on ${esc(prettyDate(ob.testDate))}`:''}.`:'An example word list is ready to try. A grown up can add this week’s school words in Grown ups.'}</p><button class="btn block pink" data-act="ob-finish" data-autofocus>Start practising</button></div>`;
   }
   return '';
 }
@@ -636,8 +655,16 @@ function playView(){
   const name=esc(profileName()||'there'); const st=streak(); const done=S.progress.days.includes(today());
   const line=done?`You have practised today. Fancy another go?`:st>0?`Keep your <b>${st} day streak</b> going!`:`Ready to practise your spellings?`;
   const list=activeList();
+  const cd=list&&list.testDate?countdownText(list.testDate):'';
+  const stale=list&&list.testDate&&daysUntil(list.testDate)<0;
+  const nextCard=stale?`<section class="card stack" style="text-align:center">
+      <h2 style="font-size:1.2rem">Time for new spellings</h2>
+      <p class="muted" style="margin:0">The test on ${esc(prettyDate(list.testDate))} has passed. A grown up can add next week's words.</p>
+      <button class="btn block" data-act="gogrown">Add this week's words</button>
+    </section>`:'';
   const listCard=list?`<section class="card stack">
-      <div><div class="eyebrow">This week's words</div><h2 style="font-size:1.4rem;margin-top:4px">${esc(list.title)}</h2></div>
+      <div><div class="eyebrow">This week's words</div><h2 style="font-size:1.4rem;margin-top:4px">${esc(list.title)}</h2>
+      ${cd?`<p class="note" style="margin-top:6px"><b>${esc(cd)}</b></p>`:''}</div>
       <div class="words">${list.words.map(w=>`<span class="chip ${S.progress.words[w]&&S.progress.words[w].mastered?'mastered':''}">${esc(w)}${pipsFor(w)}</span>`).join('')}</div>
       <p class="note">Green dots show the days each word was spelled from sound first time. Three dots means mastered.</p>
       <button class="btn block pink" data-act="start" style="font-size:1.25rem;padding:18px">Start lesson</button>
@@ -648,7 +675,7 @@ function playView(){
       <p class="muted" style="margin:0">Ask a grown up to add this week's words from school.</p>
       <button class="btn block" data-act="gogrown">Open Grown ups</button>
     </section>`;
-  return `<div class="hello">${owl('cheer')}<div class="bubble">Hello ${name}! ${line}</div></div>${listCard}`;
+  return `<div class="hello">${owl('cheer')}<div class="bubble">Hello ${name}! ${line}</div></div>${nextCard}${listCard}`;
 }
 function progressView(){
   const days=new Set(S.progress.days); const now=new Date(); const dow=(now.getDay()+6)%7; const mon=new Date(now);mon.setDate(now.getDate()-dow);
@@ -691,14 +718,15 @@ function grownView(){
     <div><label class="lbl" for="d-title">List name</label><input type="text" id="d-title" value="${esc(draft.title||defTitle)}"></div>
     <div><label class="lbl" for="d-text">Type or paste the words</label><textarea id="d-text" placeholder="charge, bulge, village"></textarea>
       <div class="row" style="margin-top:8px"><button class="ghost small" data-act="addtyped">Add these words</button></div></div>
-    <div><span class="lbl">Photo of the spelling sheet</span><p class="note">Reading words from a photo is coming soon. For now, type or paste the words above.</p></div>
+    <div><label class="lbl" for="d-date">Day of the spelling test (optional)</label><input type="date" id="d-date" value="${esc(draft.testDate||'')}">
+      <p class="note">${draft.testDate?esc(prettyDate(draft.testDate)):'Adding the test day shows a countdown on your child’s screen.'}</p></div>
     <div class="draft"><span class="lbl">Words in this list (${draft.words.length})</span>
       <div class="words">${draft.words.length?draft.words.map((w,i)=>`<span class="chip">${esc(w)}<button data-rm="${i}" aria-label="Remove ${esc(w)}">×</button></span>`).join(''):'<span class="note">No words added yet.</span>'}</div></div>
     <div class="row"><button class="btn" data-act="savelist" ${draft.words.length?'':'disabled'}>Save and use this list</button>${draft.id||draft.words.length?`<button class="ghost" data-act="cleardraft">Cancel</button>`:''}</div>
   </section>
   <section class="card">
     <h2 style="font-size:1.25rem;margin-bottom:4px">Saved lists</h2>
-    ${lists.length?lists.map(([id,l])=>`<div class="listrow"><div class="t"><b>${esc(l.title)}</b><span class="note">${(l.words||[]).length} words</span></div>
+    ${lists.length?lists.map(([id,l])=>`<div class="listrow"><div class="t"><b>${esc(l.title)}</b><span class="note">${(l.words||[]).length} words${l.testDate?' · test '+esc(prettyDate(l.testDate)):''}</span></div>
       ${act&&act.id===id?'<span class="inuse">In use</span>':`<button class="ghost small" data-use="${esc(id)}">Use this list</button>`}
       <button class="ghost small" data-edit="${esc(id)}">Edit</button>
       ${confirmDel===id?`<button class="ghost small danger" data-delyes="${esc(id)}">Delete for good</button><button class="ghost small" data-delno>Keep</button>`:`<button class="ghost small danger" data-del="${esc(id)}">Delete</button>`}</div>`).join('')
@@ -717,6 +745,19 @@ function grownView(){
     <div><b>Voice</b><p class="note" style="margin:2px 0 8px">Words are read by this device's built in voice${voice?` (${esc(voice.name)})`:''}. Slow mode lights up each letter group; the sounds are not exact phonemes.</p>
       <div class="row"><button class="ghost small" data-act="vnormal">${ICON.speaker}Test normal</button><button class="ghost small" data-act="vslow">${ICON.slow}Test slow</button><span class="word sm" data-say-target>${chunks('giraffe').map(c=>`<span class="chunk">${c}</span>`).join('')}</span></div></div>
     <div class="row"><button class="ghost small" data-act="pin-change">Change PIN</button><button class="ghost small" data-act="lock">${ICON.lock}Lock Grown ups</button></div>
+  </section>
+  <section class="card stack">
+    <h2 style="font-size:1.25rem">Tell us what you think</h2>
+    <p class="note">Suggest a feature or report a problem. We read every message. Your note is sent with your account email so we can reply.</p>
+    <div class="row" role="group" aria-label="Type of message">
+      <button class="ghost small" data-act="fb-idea" aria-pressed="${fbKind==='idea'}">Suggest a feature</button>
+      <button class="ghost small" data-act="fb-problem" aria-pressed="${fbKind==='problem'}">Report a problem</button>
+    </div>
+    <div><label class="lbl" for="fb-text">${fbKind==='problem'?'What went wrong?':'What would help your family?'}</label>
+      <textarea id="fb-text" maxlength="2000" placeholder="${fbKind==='problem'?'Tell us what you did and what happened.':'Describe the idea in a sentence or two.'}">${esc(fbText)}</textarea></div>
+    ${fbMsg?`<p class="note"><b>${esc(fbMsg)}</b></p>`:''}
+    <div class="row"><button class="btn" data-act="fb-send" ${fbSending?'disabled':''}>${fbSending?'Sending…':'Send to Spelling Nest'}</button>
+      <a class="ghost small linkbtn" href="mailto:info@spellingnest.co.uk">Email us instead</a></div>
   </section>
   <section class="card stack">
     <h2 style="font-size:1.25rem">Your account</h2>
@@ -754,7 +795,7 @@ function toJpeg(file){
     }catch(e){resolve(file)}
   });
 }
-function keepTitle(){const i=$('#d-title');if(i)draft.title=i.value.trim()}
+function keepTitle(){const i=$('#d-title');if(i)draft.title=i.value.trim();const d=$('#d-date');if(d)draft.testDate=d.value||''}
 
 async function createProfile(){
   const p={id:uuid(),name:ob.name,year:ob.year||'none',createdAt:Date.now()};
@@ -763,9 +804,13 @@ async function createProfile(){
     await run(sb.from('families').update({pin_hash:S.account.pin,sound:!!S.account.sound}).eq('parent_id',user.id),'settings');
     await run(sb.from('spellers').insert({id:p.id,parent_id:user.id,name:p.name,school_year:p.year}),'new speller');
     const listId=uuid();
-    await run(sb.from('word_lists').insert({id:listId,parent_id:user.id,speller_id:p.id,title:EXAMPLE.title,words:EXAMPLE.words.slice(),is_active:true}),'example list');
+    const own=(ob.words&&ob.words.length)?ob.words.slice():null;
+    const title=own?('This week’s spellings'+(ob.testDate?' · test '+prettyDate(ob.testDate):'')).slice(0,80):EXAMPLE.title;
+    const words=own||EXAMPLE.words.slice();
+    const tdate=own&&ob.testDate?ob.testDate:null;
+    await run(sb.from('word_lists').insert({id:listId,parent_id:user.id,speller_id:p.id,title,words,is_active:true,test_date:tdate}),'word list');
     S.account.profiles=S.account.profiles.concat([p]);
-    S.pid=p.id; S.lists={lists:{[listId]:{title:EXAMPLE.title,words:EXAMPLE.words.slice(),createdAt:Date.now()}},activeListId:listId};
+    S.pid=p.id; S.lists={lists:{[listId]:{title,words:words.slice(),createdAt:Date.now(),testDate:tdate||''}},activeListId:listId};
     S.progress=blankProgress();
     await run(sb.from('speller_progress').insert(progressRow(p.id)),'progress');
     selectProfile(p.id,true);
@@ -786,7 +831,7 @@ async function onPinComplete(){
   if(view==='onboard'){
     if(ob.step==='pin'){ob.pin1=entered;ob.step='pin2';pinErr='';renderView();return}
     if(entered!==ob.pin1){ob.step='pin';ob.pin1='';pinErr='Those PINs did not match. Choose a PIN again.';renderView();return}
-    S.account.pin=await hashPin(entered); pinErr=''; ob.step='done'; renderView(); return;
+    S.account.pin=await hashPin(entered); pinErr=''; ob.step='words'; renderView(); return;
   }
   if(pinFlow==='gate'){
     if(await hashPin(entered)===S.account.pin){unlocked=true;pinErr='';renderView();window.scrollTo(0,0)}
@@ -808,7 +853,7 @@ $('#view').addEventListener('click',e=>{
   if(t.dataset.prog){progTab=t.dataset.prog;renderView();return}
   if(t.dataset.rm){draft.words.splice(+t.dataset.rm,1);keepTitle();renderView();return}
   if(t.dataset.use){S.lists.activeListId=t.dataset.use;persistLists();renderView();toast('Lessons now use this list');return}
-  if(t.dataset.edit){const l=S.lists.lists[t.dataset.edit];draft={id:t.dataset.edit,title:l.title,words:(l.words||[]).slice()};renderView();window.scrollTo(0,0);return}
+  if(t.dataset.edit){const l=S.lists.lists[t.dataset.edit];draft={id:t.dataset.edit,title:l.title,words:(l.words||[]).slice(),testDate:l.testDate||''};renderView();window.scrollTo(0,0);return}
   if(t.dataset.del){confirmDel=t.dataset.del;renderView();return}
   if('delno' in t.dataset){confirmDel=null;renderView();return}
   if(t.dataset.delyes){const id=t.dataset.delyes;deletedLists.add(id);delete S.lists.lists[id];if(S.lists.activeListId===id)S.lists.activeListId=null;confirmDel=null;persistLists();renderView();toast('List deleted');return}
@@ -824,7 +869,11 @@ $('#view').addEventListener('click',e=>{
     case 'ob-cancel': view='pick'; renderView(); break;
     case 'ob-back': {const order=obSteps();const cur=ob.step==='pin2'?'pin':ob.step;ob.step=order[Math.max(0,order.indexOf(cur)-1)];pinEntry='';pinErr='';renderView();break}
     case 'ob-name': {const v=($('#ob-name').value||'').trim().replace(/\s+/g,' ');if(!v){$('#ob-err').textContent='Type a name or nickname to carry on.';break}if(S.account.profiles.some(p=>p.name.toLowerCase()===v.toLowerCase())){$('#ob-err').textContent='There is already a speller called '+v+'. Try a different nickname.';break}ob.name=v.slice(0,20);ob.step='year';renderView();break}
-    case 'ob-year': ob.step=S.account.pin?'done':'pin'; pinEntry=''; renderView(); break;
+    case 'ob-year': ob.step=S.account.pin?'words':'pin'; pinEntry=''; renderView(); break;
+    case 'ob-words': {const ta=$('#ob-words');const di=$('#ob-date');const ws=normaliseWords(ta?ta.value:'');
+      if(!ws.length){ob.wordErr='Type at least one word, or choose Skip for now.';renderView();break}
+      ob.words=ws.slice(0,40); ob.testDate=di&&di.value?di.value:''; ob.wordErr=''; ob.step='done'; renderView(); break}
+    case 'ob-skipwords': ob.words=[]; ob.testDate=''; ob.wordErr=''; ob.step='done'; renderView(); break;
     case 'ob-finish': createProfile(); break;
     case 'addprofile': startOnboarding(true); break;
     case 'start': startLesson(); break;
@@ -838,15 +887,19 @@ $('#view').addEventListener('click',e=>{
         if(!S.lists.lists||typeof S.lists.lists!=='object') S.lists.lists={};
         const id=draft.id||uuid(); const prev=S.lists.lists[id];
         const title=(draft.title||'Spellings').slice(0,80);
-        S.lists.lists[id]={title,words:draft.words.slice(),createdAt:prev&&prev.createdAt?prev.createdAt:Date.now()};
+        const dEl=$('#d-date'); if(dEl) draft.testDate=dEl.value||'';
+        S.lists.lists[id]={title,words:draft.words.slice(),createdAt:prev&&prev.createdAt?prev.createdAt:Date.now(),testDate:draft.testDate||''};
         S.lists.activeListId=id; persistLists();
-        draft={id:null,title:'',words:[]};
+        draft={id:null,title:'',words:[],testDate:''};
         view='play'; renderChrome(); renderView(); window.scrollTo(0,0);
         toast('Saved “'+title+'”. Lessons now use this list.');
       }catch(err){ toast('The list could not be saved: '+(err&&err.message||err)); }
       break;
     }
-    case 'cleardraft': draft={id:null,title:'',words:[]}; renderView(); break;
+    case 'cleardraft': draft={id:null,title:'',words:[],testDate:''}; renderView(); break;
+    case 'fb-idea': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='idea'; fbMsg=''; renderView(); break}
+    case 'fb-problem': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='problem'; fbMsg=''; renderView(); break}
+    case 'fb-send': sendFeedback(); break;
     case 'sound': S.account.sound=!S.account.sound; persistAccount(); renderView(); break;
     case 'vnormal': say('giraffe'); break;
     case 'vslow': say('giraffe',{slow:true}); break;
@@ -1057,7 +1110,7 @@ function endLesson(reason){
   lesson.lastSummary=sum;
   const name=esc(profileName()||'superstar');
   const title=!completed?(reason==='hearts'?'Out of hearts':'Lesson stopped'):stars===3?(lesson.wrong===0?'Perfect spelling!':'Superstar speller!'):stars===2?'Great spelling!':'Good effort!';
-  const msg=!completed?(reason==='hearts'?`Pip thinks you need a little rest, ${name}. Here is how you did so far.`:'Here is how you did so far. Your XP has been saved.'):stars===3?`Brilliant work, ${name}!`:stars===2?`Well done, ${name}. Just a few to practise.`:`Keep going, ${name}. Practising the tricky words will help.`;
+  const msg=!completed?(reason==='hearts'?`Kit the owl says it is time for a rest. Here is how you did so far.`:'Here is how you did so far. Your XP has been saved.'):stars===3?`Brilliant work, ${name}!`:stars===2?`Well done, ${name}. Just a few to practise.`:`Keep going, ${name}. Practising the tricky words will help.`;
   const label={first:'Right first time',hint:'Right with a clue',missed:'Keep practising'};
   const missed=sum.rows.filter(r=>r.status!=='first').map(r=>r.word);
   const rows=sum.rows.map(r=>`<div class="scorerow ${r.status}"><span class="mark" aria-hidden="true">${r.status==='first'?ICON.tick:r.status==='hint'?'?':ICON.x}</span><span class="w">${esc(r.word)}</span><span class="lab">${label[r.status]}</span><button class="ghost small" data-say="${esc(r.word)}" aria-label="Hear ${esc(r.word)}">${ICON.speaker}</button></div>`).join('');
@@ -1119,3 +1172,4 @@ window.addEventListener('unhandledrejection',ev=>{try{const r=ev.reason;toast('S
 renderChrome(); renderView(); connect();
 })();
 </script>
+</html>
