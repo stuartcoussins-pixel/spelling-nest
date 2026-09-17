@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Spelling Nest · usage dashboard</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface-0:#f4f4f2; --surface-1:#fcfcfb; --border:#e2e1dc;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#78766f;
+  --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a;
+  --grid:#e7e6e1; --good:#1baf7a; --bad:#e34948; --navy:#022140;
+  --ord-1:#0d366b; --ord-2:#1c5cab; --ord-3:#2a78d6; --ord-4:#3987e5; --ord-5:#86b6ef;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-0:#111110; --surface-1:#1a1a19; --border:#33322f;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#98968c;
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --grid:#2b2a28; --good:#199e70; --bad:#e66767; --navy:#cfe0ef;
+    --ord-1:#86b6ef; --ord-2:#3987e5; --ord-3:#256abf; --ord-4:#1c5cab; --ord-5:#184f95;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-0:#111110; --surface-1:#1a1a19; --border:#33322f;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#98968c;
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+  --grid:#2b2a28; --good:#199e70; --bad:#e66767; --navy:#cfe0ef;
+  --ord-1:#86b6ef; --ord-2:#3987e5; --ord-3:#256abf; --ord-4:#1c5cab; --ord-5:#184f95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--text-primary);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 64px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:1.35rem;margin:0;letter-spacing:-.01em}
+h2{font-size:1rem;margin:0 0 2px;letter-spacing:-.005em}
+.sub{color:var(--text-secondary);font-size:.85rem;margin:0}
+.muted{color:var(--text-muted)}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0}
+button.rng,button.act{font:inherit;font-size:.85rem;padding:7px 12px;border-radius:999px;border:1px solid var(--border);
+  background:var(--surface-1);color:var(--text-primary);cursor:pointer}
+button.rng[aria-pressed="true"]{background:var(--navy);color:var(--surface-1);border-color:var(--navy)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px}
+.kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:14px}
+.kpi .lab{font-size:.78rem;color:var(--text-secondary);display:block;margin-bottom:4px}
+.kpi .val{font-size:1.7rem;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:block}
+.kpi .den{font-size:.75rem;color:var(--text-muted);display:block;margin-top:2px}
+.delta{font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--text-muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 2px;font-size:.78rem;color:var(--text-secondary)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{fill:var(--text-muted);font-size:10px}
+.gl{stroke:var(--grid);stroke-width:1}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--text-secondary);font-weight:600;font-size:.78rem}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+details{margin-top:10px}
+summary{cursor:pointer;font-size:.8rem;color:var(--text-secondary)}
+.cohort{min-width:520px}
+.h1{background:#cde2fb;color:#0b0b0b}.h2{background:#9ec5f4;color:#0b0b0b}
+.h3{background:#3987e5;color:#fff}.h4{background:#1c5cab;color:#fff}.h5{background:#0d366b;color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .h1{background:#0d366b;color:#fff}
+ :root:not([data-theme="light"]) .h2{background:#184f95;color:#fff}
+ :root:not([data-theme="light"]) .h3{background:#256abf;color:#fff}
+ :root:not([data-theme="light"]) .h4{background:#3987e5;color:#fff}
+ :root:not([data-theme="light"]) .h5{background:#86b6ef;color:#0b0b0b}}
+:root[data-theme="dark"] .h1{background:#0d366b;color:#fff}
+:root[data-theme="dark"] .h2{background:#184f95;color:#fff}
+:root[data-theme="dark"] .h3{background:#256abf;color:#fff}
+:root[data-theme="dark"] .h4{background:#3987e5;color:#fff}
+:root[data-theme="dark"] .h5{background:#86b6ef;color:#0b0b0b}
+.cohort td.cell{text-align:center;font-variant-numeric:tabular-nums;font-size:.78rem;border:2px solid var(--surface-1);border-radius:4px}
+.note{font-size:.8rem;color:var(--text-muted);margin:10px 0 0}
+.gate{max-width:420px;margin:12vh auto;text-align:left}
+input[type=email],input[type=number]{font:inherit;font-size:.95rem;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);width:100%}
+.btn{font:inherit;font-weight:600;padding:11px 16px;border-radius:10px;border:0;background:var(--navy);
+  color:var(--surface-1);cursor:pointer;margin-top:10px}
+#tip{position:fixed;pointer-events:none;background:var(--text-primary);color:var(--surface-1);
+  padding:6px 9px;border-radius:8px;font-size:.78rem;line-height:1.35;opacity:0;transition:opacity .1s;z-index:9;max-width:220px}
+.pill{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--surface-0);
+  border:1px solid var(--border);color:var(--text-secondary)}
+.dormant{color:var(--text-secondary);font-size:.85rem}
+.err{color:var(--bad);font-size:.85rem}
+.fb{border-bottom:1px solid var(--border);padding:10px 0}
+.fb p{margin:4px 0 0;font-size:.9rem}
+</style>
+</head>
+<body>
+<div id="tip" role="status" aria-live="off"></div>
+<div class="wrap">
+
+  <div id="gate" class="gate" hidden>
+    <h1>Spelling Nest usage dashboard</h1>
+    <p class="sub">Sign in with the email address registered as an administrator. A link will be sent to you.</p>
+    <p><label for="em" class="sub">Email address</label><input id="em" type="email" autocomplete="email" placeholder="name@example.com"></p>
+    <button class="btn" id="send">Send me a sign in link</button>
+    <p id="gatemsg" class="sub"></p>
+  </div>
+
+  <div id="denied" class="gate" hidden>
+    <h1>Not an administrator</h1>
+    <p class="sub">This account is not on the administrator list, so no metrics can be shown. Aggregate reporting is restricted at the database, not just on this page.</p>
+    <button class="act" id="out2">Sign out</button>
+  </div>
+
+  <main id="dash" hidden>
+    <header class="top">
+      <div>
+        <h1>Spelling Nest usage</h1>
+        <p class="sub" id="stamp">Loading…</p>
+      </div>
+      <div><button class="act" id="out">Sign out</button></div>
+    </header>
+
+    <div class="controls" role="group" aria-label="Date range">
+      <span class="sub">Period</span>
+      <button class="rng" data-days="7">7 days</button>
+      <button class="rng" data-days="28" aria-pressed="true">28 days</button>
+      <button class="rng" data-days="90">90 days</button>
+      <button class="rng" data-days="365">12 months</button>
+      <button class="act" id="refresh">Refresh</button>
+    </div>
+
+    <p id="thin" class="note"></p>
+
+    <div class="kpis" id="kpis"></div>
+
+    <section class="card">
+      <h2>Growth</h2>
+      <p class="sub">New families each week, and the running total.</p>
+      <div class="grid2">
+        <div>
+          <div class="legend"><span><i style="background:var(--series-1)"></i>New families per week</span></div>
+          <div id="c-growth"></div>
+        </div>
+        <div>
+          <div class="legend"><span><i style="background:var(--series-2)"></i>Cumulative families</span></div>
+          <div id="c-cum"></div>
+        </div>
+      </div>
+      <div id="sources"></div>
+      <details><summary>Show the data</summary><div id="t-growth"></div></details>
+    </section>
+
+    <section class="card">
+      <h2>Activation</h2>
+      <p class="sub" id="funsub"></p>
+      <div id="c-funnel"></div>
+      <p class="note" id="funnote"></p>
+      <details><summary>Show the data</summary><div id="t-funnel"></div></details>
+    </section>
+
+    <section class="card">
+      <h2>Engagement</h2>
+      <p class="sub">Children practising each week. The north star counts children completing two or more lessons in the week.</p>
+      <div class="legend">
+        <span><i style="background:var(--series-1)"></i>Practising children, 2 or more lessons</span>
+        <span><i style="background:var(--series-3)"></i>Any lesson that week</span>
+      </div>
+      <div id="c-engage"></div>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <div class="legend"><span><i style="background:var(--series-2)"></i>Lessons completed per week</span></div>
+          <div id="c-lessons"></div>
+        </div>
+        <div id="engstats"></div>
+      </div>
+      <details><summary>Show the data</summary><div id="t-engage"></div></details>
+    </section>
+
+    <section class="card">
+      <h2>Retention</h2>
+      <p class="sub">Families grouped by the week they signed up, and the share active in each later week.</p>
+      <div id="c-cohort" style="overflow-x:auto"></div>
+      <p class="note" id="cohortnote"></p>
+    </section>
+
+    <section class="card">
+      <h2>Product quality</h2>
+      <div class="kpis" id="qkpis"></div>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <div class="legend"><span><i style="background:var(--series-1)"></i>Mean score per week</span></div>
+          <div id="c-score"></div>
+        </div>
+        <div id="qtables"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Commercial readiness</h2>
+      <p class="sub">Evidence for a later pricing decision. Greyed measures are defined but cannot be populated until a model exists.</p>
+      <div class="kpis" id="ckpis"></div>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <div class="legend"><span><i style="background:var(--series-1)"></i>Children per household</span></div>
+          <div id="c-children"></div>
+        </div>
+        <div>
+          <h2 style="font-size:.9rem">Cost per active family</h2>
+          <p class="sub">Enter your monthly running cost, for example Supabase, Resend and the domain. Stored in this browser only.</p>
+          <input id="cost" type="number" min="0" step="0.01" placeholder="Monthly cost in pounds">
+          <p id="costout" class="sub"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Feedback</h2>
+      <div id="feedback"></div>
+    </section>
+
+    <p class="note">Every figure on this page is an aggregate. No child's name, word list or individual history is readable from here, by design.</p>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+<script>
+/* ---------- setup ---------- */
+var SB_URL='https://txrremotfkdvlwyespmr.supabase.co';
+var SB_KEY='sb_publishable_TWgzinNhtGIFrY5aenvLLA_NfQu13rx';
+var sb=null, days=28, D={};
+var $=function(s){return document.querySelector(s)};
+var esc=function(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var fmt=function(n){return (n==null||isNaN(n))?'–':Number(n).toLocaleString('en-GB')};
+var wkLabel=function(d){var x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short'})};
+
+/* ---------- tooltip ---------- */
+var tip=$('#tip');
+function bindTip(root){
+  root.querySelectorAll('[data-tip]').forEach(function(el){
+    el.addEventListener('mouseenter',function(e){tip.innerHTML=el.getAttribute('data-tip');tip.style.opacity=1});
+    el.addEventListener('mousemove',function(e){
+      var x=Math.min(e.clientX+14,innerWidth-236), y=Math.max(8,e.clientY-42);
+      tip.style.left=x+'px';tip.style.top=y+'px';
+    });
+    el.addEventListener('mouseleave',function(){tip.style.opacity=0});
+  });
+}
+
+/* ---------- chart helpers ---------- */
+function svgWrap(w,h,inner){return '<svg viewBox="0 0 '+w+' '+h+'" role="img">'+inner+'</svg>'}
+function niceMax(v){if(!v)return 4;var p=Math.pow(10,Math.floor(Math.log10(v)));var m=v/p;var s=m<=1?1:m<=2?2:m<=5?5:10;return s*p}
+
+function barChart(el,rows,opt){
+  opt=opt||{}; var W=opt.w||520,H=opt.h||200,L=34,R=8,T=12,B=26, iw=W-L-R, ih=H-T-B;
+  if(!rows.length){el.innerHTML='<p class="note">No data yet.</p>';return}
+  var max=niceMax(Math.max.apply(null,rows.map(function(r){return r.v})));
+  var step=iw/rows.length, bw=Math.max(4,Math.min(34,step-6));
+  var s='';
+  for(var g=0;g<=4;g++){var y=T+ih-ih*g/4;s+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/>'
+    +'<text class="ax" x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end">'+fmt(Math.round(max*g/4))+'</text>'}
+  rows.forEach(function(r,i){
+    var h=max?ih*r.v/max:0, x=L+step*i+(step-bw)/2, y=T+ih-h;
+    if(h>0) s+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="4" fill="'+(opt.color||'var(--series-1)')+'" data-tip="'+esc(r.tip||(r.k+': '+r.v))+'"/>';
+    else s+='<rect x="'+x+'" y="'+(T+ih-1)+'" width="'+bw+'" height="1" fill="var(--grid)" data-tip="'+esc(r.tip||(r.k+': 0'))+'"/>';
+    if(rows.length<=14||i%2===0) s+='<text class="ax" x="'+(x+bw/2)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(r.k)+'</text>';
+  });
+  el.innerHTML=svgWrap(W,H,s); bindTip(el);
+}
+
+function lineChart(el,series,labels,opt){
+  opt=opt||{}; var W=opt.w||520,H=opt.h||200,L=34,R=10,T=12,B=26, iw=W-L-R, ih=H-T-B;
+  if(!labels.length){el.innerHTML='<p class="note">No data yet.</p>';return}
+  var all=[]; series.forEach(function(se){all=all.concat(se.v)});
+  var max=niceMax(Math.max.apply(null,all.concat([0])));
+  var px=function(i){return labels.length===1?L+iw/2:L+iw*i/(labels.length-1)};
+  var py=function(v){return T+ih-(max?ih*v/max:0)};
+  var s='';
+  for(var g=0;g<=4;g++){var y=T+ih-ih*g/4;s+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/>'
+    +'<text class="ax" x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end">'+fmt(Math.round(max*g/4))+(opt.pct?'%':'')+'</text>'}
+  labels.forEach(function(lb,i){if(labels.length<=14||i%2===0) s+='<text class="ax" x="'+px(i)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(lb)+'</text>'});
+  series.forEach(function(se){
+    var d=se.v.map(function(v,i){return (i?'L':'M')+px(i).toFixed(1)+' '+py(v).toFixed(1)}).join(' ');
+    s+='<path d="'+d+'" fill="none" stroke="'+se.c+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    se.v.forEach(function(v,i){
+      s+='<circle cx="'+px(i).toFixed(1)+'" cy="'+py(v).toFixed(1)+'" r="4.5" fill="'+se.c+'" stroke="var(--surface-1)" stroke-width="2" data-tip="'+esc(labels[i]+' · '+se.n+': '+v+(opt.pct?'%':''))+'"/>';
+    });
+  });
+  el.innerHTML=svgWrap(W,H,s); bindTip(el);
+}
+
+function funnelChart(el,stages){
+  var W=1040, rowH=42, H=stages.length*rowH+8, L=210, R=90, iw=W-L-R;
+  var top=stages[0]?stages[0].count:0;
+  var ramp=['var(--ord-1)','var(--ord-2)','var(--ord-3)','var(--ord-4)','var(--ord-5)'];
+  var s='';
+  stages.forEach(function(st,i){
+    var y=i*rowH+6, w=top?Math.max(2,iw*st.count/top):2;
+    var prev=i?stages[i-1].count:null;
+    var drop=(prev!==null&&prev>0)?Math.round(100*(prev-st.count)/prev):null;
+    s+='<text class="ax" x="'+(L-10)+'" y="'+(y+21)+'" text-anchor="end" style="font-size:11px;fill:var(--text-secondary)">'+esc(st.stage)+'</text>';
+    s+='<rect x="'+L+'" y="'+y+'" width="'+w+'" height="26" rx="4" fill="'+(ramp[Math.min(i,4)])+'" data-tip="'+esc(st.stage+': '+st.count+' of '+top)+'"/>';
+    s+='<text class="ax" x="'+(L+w+8)+'" y="'+(y+18)+'" style="font-size:12px;fill:var(--text-primary);font-weight:600">'+fmt(st.count)+'</text>';
+    if(drop!==null&&drop>0) s+='<text class="ax" x="'+(L+w+8)+'" y="'+(y+31)+'" style="font-size:10px">−'+drop+'%</text>';
+  });
+  el.innerHTML=svgWrap(W,H,s); bindTip(el);
+}
+
+function cohortTable(el,data){
+  var rows={}, horizon=data.horizon||8;
+  (data.cohorts||[]).forEach(function(c){ (rows[c.cohort_week]=rows[c.cohort_week]||{size:c.size,cells:{}}).cells[c.offset_weeks]=c });
+  var keys=Object.keys(rows).sort();
+  if(!keys.length){el.innerHTML='<p class="note">No cohorts yet.</p>';return}
+  var steps=['h1','h2','h3','h4','h5'];
+  var h='<table class="cohort"><thead><tr><th>Signup week</th><th class="num">Families</th>';
+  for(var i=0;i<=horizon;i++) h+='<th class="num">W'+i+'</th>';
+  h+='</tr></thead><tbody>';
+  keys.forEach(function(k){
+    var r=rows[k];
+    h+='<tr><td>'+wkLabel(k)+'</td><td class="num">'+r.size+'</td>';
+    for(var i=0;i<=horizon;i++){
+      var c=r.cells[i];
+      if(!c){h+='<td class="cell"></td>';continue}
+      var p=c.pct||0, idx=p===0?-1:p<20?0:p<40?1:p<60?2:p<80?3:4;
+      h+='<td class="cell '+(idx<0?'':steps[idx])+'" data-tip="'+esc(wkLabel(k)+' cohort, week '+i+': '+c.active+' of '+c.size)+'">'+p+'%</td>';
+    }
+    h+='</tr>';
+  });
+  el.innerHTML=h+'</tbody></table>'; bindTip(el);
+}
+
+function table(el,cols,rows,empty){
+  if(!rows.length){el.innerHTML='<p class="note">'+esc(empty||'Nothing yet.')+'</p>';return}
+  var h='<table><thead><tr>'+cols.map(function(c){return '<th'+(c.num?' class="num"':'')+'>'+esc(c.t)+'</th>'}).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr>'+cols.map(function(c){return '<td'+(c.num?' class="num"':'')+'>'+esc(r[c.k])+'</td>'}).join('')+'</tr>'});
+  el.innerHTML=h+'</tbody></table>';
+}
+
+function kpi(lab,val,den,cur,prev){
+  var d='';
+  if(cur!=null&&prev!=null){
+    if(prev===0&&cur===0) d='<span class="delta flat">no change</span>';
+    else if(prev===0) d='<span class="delta up">new</span>';
+    else{var pc=Math.round(100*(cur-prev)/prev);
+      d='<span class="delta '+(pc>0?'up':pc<0?'down':'flat')+'">'+(pc>0?'+':'')+pc+'% vs previous</span>'}
+  }
+  return '<div class="kpi"><span class="lab">'+esc(lab)+'</span><span class="val">'+val+'</span>'
+    +(den?'<span class="den">'+esc(den)+'</span>':'')+(d?'<span class="den">'+d+'</span>':'')+'</div>';
+}
+
+/* ---------- render ---------- */
+function render(){
+  var o=D.overview||{}, g=D.growth||{}, f=D.funnel||{}, e=D.engagement||{},
+      r=D.retention||{}, q=D.quality||{}, c=D.commercial||{}, fb=D.feedback||{};
+
+  $('#stamp').textContent='Live figures for the last '+days+' days · read '+new Date().toLocaleString('en-GB');
+
+  var small=(o.signups_total||0)<20;
+  $('#thin').innerHTML=small
+    ? 'Only '+fmt(o.signups_total)+' families have signed up so far, so every rate below rests on a very small denominator. Weekly cohort retention will not be interpretable until roughly 20 to 30 families have joined. Denominators are shown beside each rate.'
+    : '';
+
+  var ns=o.north_star||{}, act=o.activation||{};
+  $('#kpis').innerHTML=
+      kpi('Practising children, week of '+(ns.week_beginning?wkLabel(ns.week_beginning):'–'), fmt(ns.current), '2 or more lessons that week', ns.current, ns.previous)
+    + kpi('Families signed up', fmt(o.signups_total), fmt(o.consented_total)+' gave consent', (o.new_signups||{}).current, (o.new_signups||{}).previous)
+    + kpi('Active families', fmt((o.active_families||{}).current), 'in the last '+days+' days', (o.active_families||{}).current, (o.active_families||{}).previous)
+    + kpi('Lessons completed', fmt((o.lessons_completed||{}).current), fmt((o.practice_minutes||{}).current)+' minutes of practice', (o.lessons_completed||{}).current, (o.lessons_completed||{}).previous)
+    + kpi('Activation within 7 days', act.rate==null?'–':act.rate+'%', act.activated+' of '+act.cohort+' families')
+    + kpi('Visitors', fmt((o.visitors||{}).current), 'distinct browsers opening the app', (o.visitors||{}).current, (o.visitors||{}).previous);
+
+  /* growth */
+  var gw=g.weeks||[];
+  barChart($('#c-growth'), gw.map(function(w){return {k:wkLabel(w.week),v:w.new_families,tip:'Week of '+wkLabel(w.week)+': '+w.new_families+' new families'}}), {color:'var(--series-1)'});
+  lineChart($('#c-cum'), [{n:'Cumulative families',c:'var(--series-2)',v:gw.map(function(w){return w.cumulative})}], gw.map(function(w){return wkLabel(w.week)}));
+  var src=g.sources||[];
+  $('#sources').innerHTML = src.length
+    ? '<h2 style="font-size:.9rem;margin-top:16px">Where visitors came from</h2>'+src.map(function(s){return '<span class="pill" style="margin:4px 6px 0 0">'+esc(s.source)+' · '+s.visitors+'</span>'}).join('')
+    : '<p class="note">No visit sources recorded yet. Add <code>?ref=name</code> to any link you share to tag it.</p>';
+  table($('#t-growth'),[{t:'Week',k:'w'},{t:'New families',k:'n',num:true},{t:'Cumulative',k:'c',num:true}],
+    gw.map(function(w){return {w:wkLabel(w.week),n:w.new_families,c:w.cumulative}}));
+
+  /* funnel */
+  $('#funsub').textContent='Families signing up in the last '+(f.period_days||90)+' days, and how far each got.';
+  funnelChart($('#c-funnel'), f.stages||[]);
+  var notes=[];
+  if(f.median_time_to_value_hours!=null) notes.push('Median time from signing in to a first completed lesson: '+f.median_time_to_value_hours+' hours.');
+  if(f.link_requests) notes.push('Sign in links requested: '+f.link_requests+', sessions started: '+f.signin_completions+'.');
+  if(f.visitors) notes.push('Visitors: '+f.visitors+', of whom '+((f.stages||[])[0]||{}).count+' signed in.');
+  $('#funnote').textContent=notes.join(' ');
+  table($('#t-funnel'),[{t:'Stage',k:'stage'},{t:'Families',k:'count',num:true}], f.stages||[]);
+
+  /* engagement */
+  var ew=e.weeks||[], labs=ew.map(function(w){return wkLabel(w.week)});
+  lineChart($('#c-engage'), [
+    {n:'Practising children',c:'var(--series-1)',v:ew.map(function(w){return w.practising_children})},
+    {n:'Any lesson',c:'var(--series-3)',v:ew.map(function(w){return w.active_children})}
+  ], labs, {w:1040,h:300});
+  barChart($('#c-lessons'), ew.map(function(w){return {k:wkLabel(w.week),v:w.lessons,tip:'Week of '+wkLabel(w.week)+': '+w.lessons+' lessons, '+w.minutes+' minutes'}}), {color:'var(--series-2)'});
+  var lpc=e.lessons_per_child_week||{}, st=e.streaks||{};
+  $('#engstats').innerHTML='<div class="kpis" style="margin-top:0">'
+    + kpi('Weekly active families', fmt(e.wau), 'of '+fmt(e.mau)+' in 30 days')
+    + kpi('Stickiness', e.wau_mau_pct==null?'–':e.wau_mau_pct+'%', 'weekly of monthly active')
+    + kpi('Lessons per child per week', lpc.median==null?'–':fmt(lpc.median), 'median, mean '+(lpc.mean==null?'–':lpc.mean))
+    + kpi('Longest streak', st.median_longest==null?'–':fmt(st.median_longest)+' days', st.with_5_plus+' of '+st.children+' reached 5 days')
+    + '</div>';
+  table($('#t-engage'),[{t:'Week',k:'w'},{t:'Practising',k:'p',num:true},{t:'Any lesson',k:'a',num:true},{t:'Lessons',k:'l',num:true},{t:'Minutes',k:'m',num:true},{t:'Sessions',k:'s',num:true}],
+    ew.map(function(w){return {w:wkLabel(w.week),p:w.practising_children,a:w.active_children,l:w.lessons,m:w.minutes,s:w.sessions}}));
+
+  /* retention */
+  cohortTable($('#c-cohort'), r);
+  $('#cohortnote').textContent=(r.dormant_families!=null)
+    ? r.dormant_families+' of '+r.total_families+' families have completed no lesson in the last 14 days.' : '';
+
+  /* quality */
+  $('#qkpis').innerHTML=
+      kpi('Lesson completion rate', q.completion_rate_pct==null?'–':q.completion_rate_pct+'%', fmt(q.lessons_completed_events)+' of '+fmt(q.lessons_started)+' started')
+    + kpi('Lessons abandoned', fmt(q.lessons_abandoned), 'stopped or out of hearts')
+    + kpi('Help used', fmt(q.help_used), 'hear again or slow read')
+    + kpi('Save failures', q.sync_error_per_1000==null?'–':q.sync_error_per_1000, 'per 1,000 events');
+  var sw=q.score_weeks||[];
+  lineChart($('#c-score'), [{n:'Mean score',c:'var(--series-1)',v:sw.map(function(w){return w.mean_score_pct||0})}], sw.map(function(w){return wkLabel(w.week)}), {pct:true});
+  var qt='<h2 style="font-size:.9rem">Words most often missed</h2><div id="t-missed"></div>'
+       + '<h2 style="font-size:.9rem;margin-top:14px">Save failures</h2><div id="t-err"></div>'
+       + '<h2 style="font-size:.9rem;margin-top:14px">App versions in use</h2><div id="t-ver"></div>';
+  $('#qtables').innerHTML=qt;
+  table($('#t-missed'),[{t:'Word',k:'word'},{t:'Times',k:'times',num:true},{t:'Children',k:'children',num:true}],q.missed_words||[],
+    'No word reaches the minimum of '+(q.min_cell||5)+' children, so nothing is shown. '+(q.missed_words_suppressed||0)+' words are held back.');
+  table($('#t-err'),[{t:'What failed',k:'what'},{t:'Count',k:'count',num:true}],q.errors||[],'No save failures recorded.');
+  table($('#t-ver'),[{t:'Version',k:'version'},{t:'People',k:'people',num:true}],q.versions||[],'No versions recorded yet.');
+
+  /* commercial */
+  var cd=c.children_distribution||{};
+  $('#ckpis').innerHTML=
+      kpi('Households', fmt(c.households), 'families with at least one child')
+    + kpi('Children per household', c.mean_children==null?'–':c.mean_children, 'mean')
+    + kpi('Engaged households', c.engaged_household_rate_pct==null?'–':c.engaged_household_rate_pct+'%', c.engaged_households+' of '+c.households+' with 2 or more lessons a week for 3 weeks running')
+    + kpi('Word lists per household', c.lists_per_household_month==null?'–':c.lists_per_household_month, 'per month, the core job')
+    + kpi('Referred signups', c.referral_rate_pct==null?'–':c.referral_rate_pct+'%', c.referred_signups+' of '+c.signups_in_period+' arrived with a tag')
+    + '<div class="kpi" style="opacity:.55"><span class="lab">Trial to paid conversion</span><span class="val">–</span><span class="den">defined, dormant until a model exists</span></div>'
+    + '<div class="kpi" style="opacity:.55"><span class="lab">ARPU and gross margin</span><span class="val">–</span><span class="den">defined, dormant</span></div>'
+    + '<div class="kpi" style="opacity:.55"><span class="lab">LTV to CAC</span><span class="val">–</span><span class="den">defined, dormant</span></div>';
+  barChart($('#c-children'), [
+    {k:'1 child',v:cd.one||0},{k:'2 children',v:cd.two||0},{k:'3 or more',v:cd.three_plus||0}
+  ], {color:'var(--series-1)'});
+  var costEl=$('#cost');
+  function showCost(){
+    var v=parseFloat(costEl.value), n=c.active_families_28d||0;
+    $('#costout').textContent=(isNaN(v)||!n)?'Enter a monthly cost to see cost per active family.'
+      :'£'+(v/n).toFixed(2)+' per active family per month, across '+n+' active families in the last 28 days.';
+    try{localStorage.setItem('sn_cost',costEl.value)}catch(x){}
+  }
+  try{costEl.value=localStorage.getItem('sn_cost')||''}catch(x){}
+  costEl.oninput=showCost; showCost();
+
+  /* feedback */
+  var items=fb.items||[];
+  $('#feedback').innerHTML = items.length
+    ? (fb.by_kind||[]).map(function(k){return '<span class="pill" style="margin:0 6px 8px 0">'+esc(k.kind)+' · '+k.count+'</span>'}).join('')
+      + items.map(function(i){return '<div class="fb"><span class="pill">'+esc(i.kind)+'</span> <span class="muted" style="font-size:.78rem">'
+        +new Date(i.created_at).toLocaleDateString('en-GB')+(i.app_version?' · '+esc(i.app_version):'')+'</span><p>'+esc(i.message)+'</p></div>'}).join('')
+    : '<p class="note">No feedback yet. The in app suggestion and problem form is planned for version 1.1 (F009).</p>';
+}
+
+/* ---------- data ---------- */
+async function load(){
+  $('#stamp').textContent='Loading…';
+  var calls=[
+    ['overview', sb.rpc('metrics_overview',{p_days:days})],
+    ['growth', sb.rpc('metrics_growth',{p_weeks:Math.max(6,Math.min(26,Math.ceil(days/7)+4))})],
+    ['funnel', sb.rpc('metrics_funnel',{p_days:Math.max(days,90)})],
+    ['engagement', sb.rpc('metrics_engagement',{p_weeks:Math.max(6,Math.min(26,Math.ceil(days/7)+4))})],
+    ['retention', sb.rpc('metrics_retention',{p_cohorts:10,p_horizon:8})],
+    ['quality', sb.rpc('metrics_quality',{p_days:days})],
+    ['commercial', sb.rpc('metrics_commercial',{p_days:Math.max(days,90)})],
+    ['feedback', sb.rpc('metrics_feedback',{p_limit:50})]
+  ];
+  var res=await Promise.all(calls.map(function(c){return c[1]}));
+  for(var i=0;i<res.length;i++){
+    if(res[i].error){
+      if(/not authorised/i.test(res[i].error.message||'')){show('denied');return}
+      $('#stamp').innerHTML='<span class="err">Could not load '+calls[i][0]+': '+esc(res[i].error.message)+'</span>';
+      return;
+    }
+    D[calls[i][0]]=res[i].data;
+  }
+  render();
+}
+
+function show(which){
+  ['gate','denied','dash'].forEach(function(id){ $('#'+id).hidden=(id!==which) });
+}
+
+async function start(){
+  sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  sb.auth.onAuthStateChange(function(ev,session){ if(session&&ev==='SIGNED_IN'){show('dash');load()} });
+  var s=await sb.auth.getSession();
+  if(location.hash&&/access_token|error/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);
+  if(s.data&&s.data.session){show('dash');load()} else show('gate');
+}
+
+$('#send').onclick=async function(){
+  var em=($('#em').value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){$('#gatemsg').textContent='Type a full email address.';return}
+  this.disabled=true; $('#gatemsg').textContent='Sending…';
+  var r=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
+  this.disabled=false;
+  $('#gatemsg').textContent=r.error?('Could not send the link: '+r.error.message):'Check your inbox for the sign in link.';
+};
+$('#out').onclick=$('#out2').onclick=async function(){ await sb.auth.signOut(); location.reload() };
+$('#refresh').onclick=function(){ load() };
+document.querySelectorAll('.rng').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('.rng').forEach(function(x){x.setAttribute('aria-pressed','false')});
+    b.setAttribute('aria-pressed','true'); days=parseInt(b.dataset.days,10); load();
+  };
+});
+start();
+</script>
+</body>
+</html>
