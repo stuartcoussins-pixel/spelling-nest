@@ -334,6 +334,24 @@ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const APP_VERSION='1.1';
+
+/* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
+
+const ANON_KEY='sn_anon_id';
+let anonId=null, sessionId=null, evQueue=[];
+function platformKind(){try{const w=Math.min(screen.width,screen.height);if(w<=520)return 'mobile';if(w<=1024)return 'tablet';return 'desktop'}catch(e){return 'unknown'}}
+function getAnonId(){if(anonId)return anonId;try{anonId=localStorage.getItem(ANON_KEY);if(!anonId){anonId=uuid();localStorage.setItem(ANON_KEY,anonId)}}catch(e){anonId=anonId||uuid()}return anonId}
+function refHost(){try{return document.referrer?new URL(document.referrer).hostname.slice(0,60):''}catch(e){return ''}}
+function refParam(){try{return (new URLSearchParams(location.search).get('ref')||'').slice(0,40)}catch(e){return ''}}
+function track(name,props,spellerId){
+  try{
+    const row={name:name,props:props||{},anon_id:getAnonId(),session_id:sessionId||(sessionId=uuid()),app_version:APP_VERSION,platform:platformKind()};
+    if(user&&user.id){row.parent_id=user.id; if(spellerId) row.speller_id=spellerId}
+    if(!sb){evQueue.push(row);return}
+    sb.from('app_events').insert(row).then(function(){},function(){});
+  }catch(e){}
+}
+function flushEvents(){try{if(!sb||!evQueue.length)return;const rows=evQueue.splice(0,evQueue.length);sb.from('app_events').insert(rows).then(function(){},function(){})}catch(e){}}
 const today=()=>dayStr(new Date());
 const prettyDate=ds=>{try{const [y,m,d]=String(ds).split('-').map(Number);const dt=new Date(y,m-1,d);return dt.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}catch(e){return String(ds||'')}};
 const daysUntil=ds=>{try{const [y,m,d]=String(ds).split('-').map(Number);const a=new Date(y,m-1,d);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);return Math.round((a-b)/86400000)}catch(e){return null}};
@@ -391,6 +409,7 @@ const S={account:defAccount(),pid:null,lists:blankLists(),progress:blankProgress
 let sb=null, user=null, syncMsg='', loadingProfile=false, deletedLists=new Set(), authMsg='', authEmail='', consentTicked=false, confirmWipe=false;
 const uuid=()=>{try{return crypto.randomUUID()}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}};
 function syncErr(e,what){
+  try{if(what!=='usage event') track('sync_error',{what:String(what||'unknown').slice(0,40),code:String((e&&e.code)||'').slice(0,40)})}catch(x){}
   const m=(e&&(e.message||e.code))||'unknown error';
   syncMsg='Could not save '+(what||'changes')+': '+m;
   try{toast('Could not save '+(what||'changes')+'. Check your connection and try again.')}catch(x){}
@@ -438,6 +457,8 @@ async function connect(){
     if(session&&session.user&&(!user||user.id!==session.user.id)){setTimeout(()=>boot(session),0)}
     if(event==='SIGNED_OUT'){user=null;resetState();view='signin';renderChrome();renderView()}
   });
+  track('app_open',{referrer_host:refHost(),ref:refParam()});
+  flushEvents();
   const {data}=await sb.auth.getSession();
   if(data&&data.session) boot(data.session);
   else if(!user){view='signin';renderChrome();renderView()}
@@ -446,6 +467,7 @@ function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.p
 async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
+  try{track('signin_completed',{is_new:!!(session.user.created_at&&Date.now()-Date.parse(session.user.created_at)<180000)})}catch(e){}
   try{
     if(location.hash&&/access_token|error/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
@@ -462,6 +484,7 @@ async function giveConsent(){
   try{
     await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
+    track('consent_given',{});
     await loadFamily(fam);
   }catch(e){renderView()}
 }
@@ -639,9 +662,9 @@ function onboardView(){
   const dots=`<div class="obsteps" aria-hidden="true">${steps.map((s,i)=>`<i class="${i<=at?'on':''}"></i>`).join('')}</div>`;
   const nm=esc(ob.name);
   switch(ob.step){
-    case 'welcome': return `<div class="onboard">${dots}${owl('cheer')}<h1>${ob.adding?'Add a new speller':'Welcome to Spelling Nest'}</h1><p class="lead">Practise your school spellings with Kit the owl. Setting up takes about a minute.</p><button class="btn block pink" data-act="ob-next" data-autofocus>Let’s get started</button>${ob.adding?'<button class="ghost" style="justify-content:center" data-act="ob-cancel">Back to profiles</button>':''}</div>`;
-    case 'name': return `<div class="onboard">${dots}${owl()}<h1>What’s your name?</h1><p class="lead">Use a first name or nickname only.</p><div><label class="lbl" for="ob-name" style="text-align:center">First name or nickname</label><input type="text" id="ob-name" class="bigin" maxlength="20" autocomplete="off" value="${nm}" data-autofocus></div><p class="err" id="ob-err"></p><button class="btn block" data-act="ob-name">Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
-    case 'year': return `<div class="onboard">${dots}${owl()}<h1>Which school year are you in, ${nm}?</h1><div class="yeargrid" role="group" aria-label="School year">${YEARS.map(y=>`<button data-year="${y}" aria-pressed="${ob.year===y}" ${y==='Reception'?'class="wide"':''}>${y}</button>`).join('')}<button class="wide" data-year="none" aria-pressed="${ob.year==='none'}">I’d rather not say</button></div><button class="btn block" data-act="ob-year" ${ob.year?'':'disabled'}>Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
+    case 'welcome': return `<div class="onboard">${dots}${owl('cheer')}<h1>${ob.adding?'Add a new speller':'Welcome to Spelling Nest'}</h1><p class="lead">Grown ups: set up your child’s spelling practice with Kit the owl. It takes about a minute.</p><button class="btn block pink" data-act="ob-next" data-autofocus>Let’s get started</button>${ob.adding?'<button class="ghost" style="justify-content:center" data-act="ob-cancel">Back to profiles</button>':''}</div>`;
+    case 'name': return `<div class="onboard">${dots}${owl()}<h1>Grown ups: what is your child called?</h1><p class="lead">This is the name Kit the owl will use. A first name or nickname only, please, and never a full name.</p><div><label class="lbl" for="ob-name" style="text-align:center">Child’s first name or nickname</label><input type="text" id="ob-name" class="bigin" maxlength="20" autocomplete="off" value="${nm}" data-autofocus></div><p class="err" id="ob-err"></p><button class="btn block" data-act="ob-name">Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
+    case 'year': return `<div class="onboard">${dots}${owl()}<h1>Which school year is ${nm} in?</h1><div class="yeargrid" role="group" aria-label="School year">${YEARS.map(y=>`<button data-year="${y}" aria-pressed="${ob.year===y}" ${y==='Reception'?'class="wide"':''}>${y}</button>`).join('')}<button class="wide" data-year="none" aria-pressed="${ob.year==='none'}">I’d rather not say</button></div><button class="btn block" data-act="ob-year" ${ob.year?'':'disabled'}>Next</button><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
     case 'pin': case 'pin2': return `<div class="onboard">${dots}<h1>${ob.step==='pin'?'Grown up: choose a PIN':'Type the PIN again'}</h1><p class="lead">${ob.step==='pin'?'Please ask a grown up to help. This 4 digit PIN locks the Grown ups area, where word lists and settings live.':'Just to check it matches.'}</p>${pinPad()}<button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
     case 'words': return `<div class="onboard">${dots}${owl()}<h1>Grown ups: this week’s spellings</h1><p class="lead">Type or paste the words from school, then choose the day of the test. You can skip this and add them later.</p><section class="card stack" style="text-align:left"><div><label class="lbl" for="ob-words">This week’s words</label><textarea id="ob-words" placeholder="charge, bulge, village">${esc((ob.words||[]).join(', '))}</textarea></div><div><label class="lbl" for="ob-date">Day of the spelling test</label><input type="date" id="ob-date" value="${esc(ob.testDate||'')}" min="${esc(today())}"></div><p class="err" id="ob-werr">${esc(ob.wordErr||'')}</p><button class="btn block" data-act="ob-words">Save these words</button><button class="ghost" style="justify-content:center" data-act="ob-skipwords">Skip for now</button></section><button class="ghost" style="justify-content:center" data-act="ob-back">Back</button></div>`;
     case 'done': return `<div class="onboard">${dots}${owl('cheer')}<h1>You’re all set, ${nm}!</h1><p class="lead">${(ob.words&&ob.words.length)?`Your ${ob.words.length} words are ready${ob.testDate?`, with the test on ${esc(prettyDate(ob.testDate))}`:''}.`:'An example word list is ready to try. A grown up can add this week’s school words in Grown ups.'}</p><button class="btn block pink" data-act="ob-finish" data-autofocus>Start practising</button></div>`;
@@ -786,10 +809,12 @@ async function sendLink(){
     if(error){authMsg=/rate|limit|seconds/i.test(error.message||'')?'Too many sign in emails just now. Wait a minute, then try again.':'The sign in email could not be sent: '+(error.message||'unknown error');authSent=false}
     else authSent=true;
   }catch(e){authMsg='The sign in email could not be sent. Check your internet connection.';authSent=false}
+  track('signin_link_requested',{outcome:authSent?'sent':'error'});
   renderView();
 }
 async function wipeFamily(){
   try{ await run(sb.from('families').delete().eq('parent_id',user.id),'family data'); }catch(e){ return; }
+  track('account_deleted',{});
   confirmWipe=false; toast('All your family’s data has been deleted');
   sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; view='signin'; renderChrome(); renderView();
 }
@@ -820,6 +845,8 @@ async function createProfile(){
     S.account.profiles=S.account.profiles.concat([p]);
     S.pid=p.id; S.lists={lists:{[listId]:{title,words:words.slice(),createdAt:Date.now(),testDate:tdate||''}},activeListId:listId};
     S.progress=blankProgress();
+    track('speller_created',{school_year:p.year||'none',profile_count:S.account.profiles.length},p.id);
+    track('list_created',{word_count:words.length,source:own?'signup':'example',has_test_date:!!tdate},p.id);
     await run(sb.from('speller_progress').insert(progressRow(p.id)),'progress');
     selectProfile(p.id,true);
   }catch(e){ ob.step='done'; view='onboard'; renderChrome(); renderView(); }
@@ -876,7 +903,7 @@ $('#view').addEventListener('click',e=>{
     case 'ob-next': ob.step='name'; renderView(); break;
     case 'ob-cancel': view='pick'; renderView(); break;
     case 'ob-back': {const order=obSteps();const cur=ob.step==='pin2'?'pin':ob.step;ob.step=order[Math.max(0,order.indexOf(cur)-1)];pinEntry='';pinErr='';renderView();break}
-    case 'ob-name': {const v=($('#ob-name').value||'').trim().replace(/\s+/g,' ');if(!v){$('#ob-err').textContent='Type a name or nickname to carry on.';break}if(S.account.profiles.some(p=>p.name.toLowerCase()===v.toLowerCase())){$('#ob-err').textContent='There is already a speller called '+v+'. Try a different nickname.';break}ob.name=v.slice(0,20);ob.step='year';renderView();break}
+    case 'ob-name': {const v=($('#ob-name').value||'').trim().replace(/\s+/g,' ');if(!v){$('#ob-err').textContent='Type your child’s name or nickname to carry on.';break}if(S.account.profiles.some(p=>p.name.toLowerCase()===v.toLowerCase())){$('#ob-err').textContent='There is already a speller called '+v+'. Try a different nickname.';break}ob.name=v.slice(0,20);ob.step='year';renderView();break}
     case 'ob-year': ob.step=S.account.pin?'words':'pin'; pinEntry=''; renderView(); break;
     case 'ob-words': {const ta=$('#ob-words');const di=$('#ob-date');const ws=normaliseWords(ta?ta.value:'');
       if(!ws.length){ob.wordErr='Type at least one word, or choose Skip for now.';renderView();break}
@@ -886,7 +913,7 @@ $('#view').addEventListener('click',e=>{
     case 'addprofile': startOnboarding(true); break;
     case 'start': startLesson(); break;
     case 'hearall': {const l=activeList(); if(l) sayAll(l.words); break}
-    case 'gogrown': view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
+    case 'gogrown': track('grownups_opened',{},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
     case 'addtyped': {const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
     case 'savelist': {
       keepTitle(); if(!draft.words.length) break;
@@ -894,10 +921,11 @@ $('#view').addEventListener('click',e=>{
         if(!S.lists||typeof S.lists!=='object') S.lists=blankLists();
         if(!S.lists.lists||typeof S.lists.lists!=='object') S.lists.lists={};
         const id=draft.id||uuid(); const prev=S.lists.lists[id];
-        const title=(draft.title||'Spellings').slice(0,80);
+        const title=(draft.title||'Spellings').slice(0,80); const draft_n=draft.words.length;
         const dEl=$('#d-date'); if(dEl) draft.testDate=dEl.value||'';
         S.lists.lists[id]={title,words:draft.words.slice(),createdAt:prev&&prev.createdAt?prev.createdAt:Date.now(),testDate:draft.testDate||''};
         S.lists.activeListId=id; persistLists();
+        track('list_created',{word_count:draft_n,source:'manual',has_test_date:!!draft.testDate},S.pid);
         draft={id:null,title:'',words:[],testDate:''};
         view='play'; renderChrome(); renderView(); window.scrollTo(0,0);
         toast('Saved “'+title+'”. Lessons now use this list.');
@@ -955,6 +983,7 @@ function startLesson(only){
   const order=shuffle(words.slice()); const qs=[];
   for(let i=0;i<n;i++){const w=i<order.length?order[i]:weightedPick(words,qs.length?qs[qs.length-1].word:null);qs.push({word:w,type:pickType(qs)})}
   Object.assign(lesson,{active:true,qs,idx:0,hearts:5,xp:0,right:0,wrong:0,requeued:new Set(),newMastered:[],timers:[],results:[],started:Date.now(),listTitle:list.title,practice:!!(only&&only.length),words:words.slice()});
+  track('lesson_started',{practice:!!lesson.practice,word_count:words.length,questions:qs.length},S.pid);
   $('.app').hidden=true; $('.tabbar').hidden=true; $('#lesson').hidden=false; window.scrollTo(0,0);
   renderQuestion();
 }
@@ -1112,6 +1141,9 @@ function endLesson(reason){
     if(sum.total){const entry={at:Date.now(),list:String(lesson.listTitle||'').slice(0,80),practice:!!lesson.practice,reason,score:sum.first,total:sum.total,stars,xp:lesson.xp+bonus,secs,missed:sum.rows.filter(r=>r.status==='missed').map(r=>r.word)};P.history.push(entry);saveHistory(entry)}
     if(P.history.length>60) P.history=P.history.slice(-60);
     newB=awardBadges({perfect:completed&&lesson.wrong===0});
+    if(completed) track('lesson_completed',{score:sum.first,total:sum.total,stars:stars,seconds:secs,practice:!!lesson.practice},S.pid);
+    else track('lesson_abandoned',{attempted:lesson.idx,total:sum.total,seconds:secs,reason:reason},S.pid);
+    newB.forEach(function(b){track('badge_earned',{badge:b.id},S.pid)});
     persistProgress();
   }catch(err){ toast('Your score could not be saved: '+(err&&err.message||err)); }
   try{renderChrome()}catch(e){}
@@ -1141,8 +1173,8 @@ $('#lesson').addEventListener('click',e=>{
   const sb=e.target.closest('[data-say]'); if(sb){say(sb.dataset.say);return}
   const b=e.target.closest('[data-l]'); if(!b) return; const q=cur();
   switch(b.dataset.l){
-    case 'hear': if(q) say(q.word); break;
-    case 'slow': if(q) say(q.word,{slow:true}); break;
+    case 'hear': if(q){say(q.word);track('help_used',{type:'hear'},S.pid)} break;
+    case 'slow': if(q){say(q.word,{slow:true});track('help_used',{type:'slow'},S.pid)} break;
     case 'main': check(); break;
     case 'next': next(); break;
     case 'quit':
