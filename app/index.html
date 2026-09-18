@@ -333,7 +333,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.5';
+const APP_VERSION='1.7';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -408,7 +408,7 @@ const blankProgress=()=>({xp:0,days:[],lessons:0,badges:{},words:{},cleanHear:0,
 
 /* ---- subscription gate (v1.2) ---- */
 let sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};
-let ukConfirmed=false, subBusy=false, subMsg='';
+let ukConfirmed=false, termsAgreed=false, termsAt=null, subBusy=false, subMsg='', subDeclined=false;
 function subCan(){ return sub.can!==false }
 function subLocked(){ return sub.loaded && sub.can===false }
 async function loadSubscription(){
@@ -437,10 +437,12 @@ async function fnCall(name,body){
   return await r.json().catch(()=>({}));
 }
 async function startCheckout(plan){
-  if(subBusy) return; subBusy=true; subMsg=''; renderView();
+  if(subBusy) return;
+  if(!termsAgreed||!ukConfirmed){subMsg='Please tick both boxes before you continue.';renderView();return}
+  subBusy=true; subMsg=''; renderView();
   try{
     track('checkout_started',{plan:plan});
-    const j=await fnCall('create-checkout-session',{plan:plan});
+    const j=await fnCall('create-checkout-session',{plan:plan,terms_version:'1.0',terms_accepted_at:termsAt||new Date().toISOString()});
     if(j&&j.url){location.href=j.url;return}
     subMsg=(j&&j.error)||'We could not open the payment page. Please try again in a moment.';
   }catch(e){ subMsg='We could not open the payment page. Please try again in a moment.' }
@@ -468,12 +470,14 @@ async function afterCheckout(){
   if(sub.reason==='paid') toast('Thank you. Your subscription is active.');
 }
 function subChoose(){
-  const dis=(!ukConfirmed||subBusy)?'disabled':'';
+  const dis=(!ukConfirmed||!termsAgreed||subBusy)?'disabled':'';
   return `<div class="switch"><span><b>My billing address is in the United Kingdom</b><br><span class="note">Spelling Nest is sold in the United Kingdom only for now. If you are elsewhere, please email info@spellingnest.co.uk and we will let you know when that changes.</span></span>
     <button class="toggle" role="switch" aria-checked="${ukConfirmed}" data-act="sub-uk" aria-label="My billing address is in the United Kingdom"></button></div>
+  <label class="consent" for="sub-terms"><input type="checkbox" id="sub-terms" ${termsAgreed?'checked':''}><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a>. I want my subscription to start straight away, and I understand that my card will be charged when the free fortnight ends unless I cancel before then.</span></label>
   <div class="row"><button class="btn" data-act="sub-annual" ${dis}>${subBusy?'Opening…':'£20 a year'}</button>
     <button class="ghost" data-act="sub-monthly" ${dis}>£3 a month</button></div>
-  <p class="note" style="margin:0">Payment is handled by Stripe and your card details never reach Spelling Nest. You can cancel from this page at any time, in no more steps than it took to subscribe.</p>
+  <p class="note" style="margin:0">Payment is handled by Stripe and your card details never reach Spelling Nest. It renews automatically until you cancel, and you can cancel from this page at any time, in no more steps than it took to subscribe.</p>
+  <p class="note" style="margin:0">Fourteen days free on your first subscription. We email you before the first payment is due.</p>
   ${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}`;
 }
 function subCard(){
@@ -492,17 +496,24 @@ function subCard(){
     return `<section class="card stack">${head(title)}<p class="note" style="margin:0">${line}</p>
       <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
   }
-  if(sub.reason==='before_trial'){
-    return `<section class="card stack">${head('Free trial not started yet')}
-      <p class="note" style="margin:0">Your five day free trial begins when you save your first word list, so that the five days are days your family can actually practise.</p></section>`;
+  if(sub.reason==='in_trial'&&sub.status==='trialling'){
+    const n=daysLeft(sub.trialEnds); const ends=sub.trialEnds?prettyDate(dpart(sub.trialEnds)):'';
+    return `<section class="card stack">${head('Free trial'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
+      <p class="note" style="margin:0">${ends?`Your first payment is due on <b>${esc(ends)}</b>. `:''}We will email you before then. Cancel any time before that date and you will not be charged.</p>
+      <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
   }
   if(sub.reason==='in_trial'){
     const n=daysLeft(sub.trialEnds); const ends=sub.trialEnds?prettyDate(dpart(sub.trialEnds)):'';
-    return `<section class="card stack">${head('Free trial'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
-      <p class="note" style="margin:0">${ends?`Your trial runs until ${esc(ends)}. `:''}We hold no card of yours and nothing is charged automatically. When the trial ends, everything stays here to look at and new lessons pause until you subscribe.</p>
+    return `<section class="card stack">${head('Your free year has ended'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
+      <p class="note" style="margin:0">${ends?`You have until ${esc(ends)} to carry on practising. `:''}After that everything stays here to look at and new lessons pause until you subscribe.</p>
       ${subChoose()}</section>`;
   }
-  return `<section class="card stack">${head('Free trial finished')}
+  if(sub.reason==='never_subscribed'){
+    return `<section class="card stack">${head('Start your free fortnight')}
+      <p class="note" style="margin:0">Fourteen days free. We take your card now so practice carries on without interruption, and nothing is charged for fourteen days. Cancel before then and you pay nothing at all.</p>
+      ${subChoose()}</section>`;
+  }
+  return `<section class="card stack">${head('Subscription ended')}
     <p class="note" style="margin:0">Everything your family has done is still here and stays here. Lessons and word list changes start again the moment you subscribe.</p>
     ${subChoose()}${manage?`<div class="row">${manage}</div>`:''}</section>`;
 }
@@ -577,7 +588,7 @@ function readAuthError(){
       :'That sign in link did not work. Ask for a code below and we will email you one instead.';
   }catch(e){}
 }
-function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};ukConfirmed=false;subBusy=false;subMsg=''}
+function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};ukConfirmed=false;termsAgreed=false;termsAt=null;subBusy=false;subMsg='';subDeclined=false}
 async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
@@ -607,6 +618,10 @@ async function giveConsent(){
 function afterAccount(){
   const profs=S.account.profiles;
   if(!profs.length){startOnboarding();return}
+  // Card up front: a family that has never subscribed is asked once, after their
+  // first child is set up, before any lesson is reachable. They can decline and
+  // look around; the app is read only until they subscribe.
+  if(sub.loaded&&sub.reason==='never_subscribed'&&!subDeclined){view='subscribe';renderChrome();renderView();return}
   if(S.pid&&!profs.find(p=>p.id===S.pid)){S.pid=null}
   if(!S.pid){ if(profs.length===1) selectProfile(profs[0].id); else {view='pick';renderChrome();renderView()} return }
   refresh();
@@ -732,6 +747,7 @@ function renderView(){
   else if(view==='loaderror') v.innerHTML=`<div class="splash">${owl('sleepy')}<h2 style="font-size:1.3rem">We could not load your family's data</h2><p class="muted" style="margin:0;max-width:40ch">${esc(syncMsg||'Check your internet connection and try again.')}</p><button class="btn" data-act="reload">Try again</button></div>`;
   else if(view==='splash') v.innerHTML=`<div class="splash">${owl('think')}<h2 style="font-size:1.3rem">Getting your nest ready…</h2></div>`;
   else if(view==='onboard') v.innerHTML=onboardView();
+  else if(view==='subscribe') v.innerHTML=subscribeView();
   else if(view==='pick') v.innerHTML=pickView();
   else if(view==='play') v.innerHTML=playView();
   else if(view==='progress') v.innerHTML=progressView();
@@ -754,7 +770,7 @@ async function sendFeedback(){
   fbSending=false; renderView();
 }
 function signinView(){
-  const terms=`<p class="note">Spelling Nest is in beta. By signing in you agree to our <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</p>`;
+  const terms=`<p class="note">By signing in you agree to our <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a> and <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</p>`;
   const err=`<p class="err" id="si-err" role="alert" style="text-align:left">${esc(authMsg)}</p>`;
   const head=`<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Kit the owl.</p>`;
   if(authStage==='code'){
@@ -773,9 +789,21 @@ function signinView(){
   <button class="btn block pink" data-act="send-code" ${authBusy?'disabled':''}>${authBusy?'Sending…':'Email me a sign in code'}</button>
   ${terms}</section></div>`;
 }
+function subscribeView(){
+  const kid=(S.account.profiles[0]&&S.account.profiles[0].name)||'your child';
+  return `<div class="onboard">${owl('cheer')}<h1>One more step</h1>
+  <p class="lead">${esc(kid)} is all set up. Start your free fortnight and the lessons open straight away.</p>
+  <section class="card stack">
+    <div><div class="eyebrow">Fourteen days free</div><h2 style="font-size:1.25rem;margin-top:4px">Then £3 a month, or £20 for the year</h2></div>
+    <p class="note" style="margin:0">We take your card now so that practice carries on without interruption. <b>Nothing is charged for fourteen days.</b> We will email you before the first payment is due, and if you cancel before then you pay nothing at all.</p>
+    <p class="note" style="margin:0">One price covers every child in your family. If you ever stop, nothing is deleted: your word lists and progress stay exactly where they are.</p>
+    ${subChoose()}
+  </section>
+  <button class="ghost" data-act="sub-later" style="justify-content:center">Not now, show me the app</button></div>`;
+}
 function consentView(){
   return `<div class="onboard">${owl()}<h1>Before you start</h1><p class="lead">For each child you add, Spelling Nest stores a first name or nickname, school year, word lists and spelling progress. There are no adverts and we never share this information.</p>
-  <section class="card stack"><label class="consent" for="consent-box"><input type="checkbox" id="consent-box" ${consentTicked?'checked':''}><span>I am the parent or carer, and I agree to the <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>
+  <section class="card stack"><label class="consent" for="consent-box"><input type="checkbox" id="consent-box" ${consentTicked?'checked':''}><span>I am the parent or carer, and I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a> and the <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>
   <button class="btn block pink" data-act="consent-go" ${consentTicked?'':'disabled'}>Continue</button>
   <button class="ghost" data-act="signout" style="justify-content:center">Use a different email address</button></section></div>`;
 }
@@ -1101,6 +1129,7 @@ $('#view').addEventListener('click',e=>{
     }
     case 'cleardraft': draft={id:null,title:'',words:[],testDate:''}; renderView(); break;
     case 'sub-uk': ukConfirmed=!ukConfirmed; subMsg=''; renderView(); break;
+    case 'sub-later': subDeclined=true; afterAccount(); break;
     case 'sub-annual': startCheckout('annual'); break;
     case 'sub-monthly': startCheckout('monthly'); break;
     case 'sub-manage': openPortal(); break;
@@ -1128,6 +1157,7 @@ $('#view').addEventListener('change',async e=>{
   if(e.target.id==='p-year'&&p){p.year=e.target.value;persistAccount();return}
   if(e.target.id==='d-title'){draft.title=e.target.value.trim();return}
   if(e.target.id==='consent-box'){consentTicked=e.target.checked;renderView();return}
+  if(e.target.id==='sub-terms'){termsAgreed=e.target.checked;termsAt=termsAgreed?new Date().toISOString():null;subMsg='';renderView();return}
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='si-email'){e.preventDefault();sendLink();return}
