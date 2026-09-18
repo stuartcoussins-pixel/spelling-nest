@@ -102,13 +102,13 @@ input[type=email],input[type=number],input[type=text]{font:inherit;font-size:.95
 
   <div id="gate" class="gate" hidden>
     <h1>Spelling Nest usage dashboard</h1>
-    <p class="sub" id="gatelead">Sign in with the email address registered as an administrator. A six digit code will be emailed to you.</p>
+    <p class="sub" id="gatelead">Sign in with the email address registered as an administrator. An eight digit code will be emailed to you.</p>
     <div id="step-email">
       <p><label for="em" class="sub">Email address</label><input id="em" type="email" autocomplete="email" placeholder="name@example.com"></p>
       <button class="btn" id="send">Send me a sign in code</button>
     </div>
     <div id="step-code" hidden>
-      <p><label for="code" class="sub">Six digit code</label><input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></p>
+      <p><label for="code" class="sub">Sign in code</label><input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="12345678"></p>
       <button class="btn" id="verify">Sign in</button>
       <button class="act" id="backtoemail" style="margin-left:8px">Use a different email</button>
     </div>
@@ -600,7 +600,7 @@ async function start(){
 }
 
 var authEmail='';
-var GATE_LEAD='Sign in with the email address registered as an administrator. A six digit code will be emailed to you.';
+var GATE_LEAD='Sign in with the email address registered as an administrator. An eight digit code will be emailed to you.';
 $('#send').onclick=async function(){
   var em=($('#em').value||'').trim();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){$('#gatemsg').textContent='Type a full email address.';return}
@@ -610,13 +610,13 @@ $('#send').onclick=async function(){
   if(r.error){$('#gatemsg').textContent='Could not send the code: '+r.error.message;return}
   authEmail=em;
   $('#step-email').hidden=true; $('#step-code').hidden=false;
-  $('#gatelead').textContent='A six digit code has been emailed to '+em+'. It expires after a few minutes.';
+  $('#gatelead').textContent='A code has been emailed to '+em+'. It expires after a few minutes.';
   $('#gatemsg').textContent='';
   try{$('#code').focus()}catch(e){}
 };
 $('#verify').onclick=async function(){
   var code=(($('#code').value||'').replace(/\D/g,''));
-  if(code.length<6){$('#gatemsg').textContent='Type the six digit code from the email.';return}
+  if(code.length<6){$('#gatemsg').textContent='Type the code from the email.';return}
   this.disabled=true; $('#gatemsg').textContent='Checking…';
   var r=await sb.auth.verifyOtp({email:authEmail,token:code,type:'email'});
   this.disabled=false;
