@@ -333,7 +333,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.1';
+const APP_VERSION='1.2';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -405,6 +405,107 @@ const AV_COLS=['#022140','#D65A77','#1D855A','#3B6EA8','#C9831B','#7A4FA0'];
 const defAccount=()=>({profiles:[],pin:null,sound:true});
 const blankLists=()=>({lists:{},activeListId:null});
 const blankProgress=()=>({xp:0,days:[],lessons:0,badges:{},words:{},cleanHear:0,history:[]});
+
+/* ---- subscription gate (v1.2) ---- */
+let sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};
+let ukConfirmed=false, subBusy=false, subMsg='';
+function subCan(){ return sub.can!==false }
+function subLocked(){ return sub.loaded && sub.can===false }
+async function loadSubscription(){
+  if(!sb||!user){sub.loaded=true;return}
+  try{
+    const {data,error}=await sb.rpc('sn_subscription_state');
+    if(error) throw error;
+    const d=data||{};
+    sub={loaded:true,status:d.status||null,can:d.can_practise!==false,reason:d.reason||'',
+         trialStarts:d.trial_starts_at||null,trialEnds:d.trial_ends_at||null,periodEnds:d.period_ends_at||null,
+         freeUntil:d.free_until||null};
+  }catch(e){
+    /* Fail open. A child is never stopped from practising because a check failed. */
+    sub={loaded:true,status:null,can:true,reason:'check_failed',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};
+  }
+}
+function daysLeft(iso){ if(!iso) return null; const ms=Date.parse(iso)-Date.now(); if(isNaN(ms)) return null; return Math.max(0,Math.ceil(ms/86400000)) }
+function dpart(iso){ return iso?String(iso).slice(0,10):'' }
+async function fnCall(name,body){
+  const {data}=await sb.auth.getSession();
+  const tok=data&&data.session?data.session.access_token:null;
+  if(!tok) throw new Error('not signed in');
+  const r=await fetch(SB_URL+'/functions/v1/'+name,{method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':SB_KEY},
+    body:JSON.stringify(body||{})});
+  return await r.json().catch(()=>({}));
+}
+async function startCheckout(plan){
+  if(subBusy) return; subBusy=true; subMsg=''; renderView();
+  try{
+    track('checkout_started',{plan:plan});
+    const j=await fnCall('create-checkout-session',{plan:plan});
+    if(j&&j.url){location.href=j.url;return}
+    subMsg=(j&&j.error)||'We could not open the payment page. Please try again in a moment.';
+  }catch(e){ subMsg='We could not open the payment page. Please try again in a moment.' }
+  subBusy=false; renderView();
+}
+async function openPortal(){
+  if(subBusy) return; subBusy=true; subMsg=''; renderView();
+  try{
+    const j=await fnCall('create-portal-session',{});
+    if(j&&j.url){location.href=j.url;return}
+    subMsg=(j&&j.error)||'We could not open your subscription page. Please try again in a moment.';
+  }catch(e){ subMsg='We could not open your subscription page. Please try again in a moment.' }
+  subBusy=false; renderView();
+}
+async function afterCheckout(){
+  let q; try{ q=new URLSearchParams(location.search) }catch(e){ return }
+  const c=q.get('checkout'); if(!c) return;
+  history.replaceState(null,'',location.pathname);
+  if(c==='cancelled'){ subMsg='No payment was taken. You can subscribe whenever you are ready.'; return }
+  for(let i=0;i<5;i++){
+    await loadSubscription();
+    if(sub.reason==='paid') break;
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  if(sub.reason==='paid') toast('Thank you. Your subscription is active.');
+}
+function subChoose(){
+  const dis=(!ukConfirmed||subBusy)?'disabled':'';
+  return `<div class="switch"><span><b>My billing address is in the United Kingdom</b><br><span class="note">Spelling Nest is sold in the United Kingdom only for now. If you are elsewhere, please email info@spellingnest.co.uk and we will let you know when that changes.</span></span>
+    <button class="toggle" role="switch" aria-checked="${ukConfirmed}" data-act="sub-uk" aria-label="My billing address is in the United Kingdom"></button></div>
+  <div class="row"><button class="btn" data-act="sub-annual" ${dis}>${subBusy?'Opening…':'£20 a year'}</button>
+    <button class="ghost" data-act="sub-monthly" ${dis}>£3 a month</button></div>
+  <p class="note" style="margin:0">Payment is handled by Stripe and your card details never reach Spelling Nest. You can cancel from this page at any time, in no more steps than it took to subscribe.</p>
+  ${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}`;
+}
+function subCard(){
+  if(!sub.loaded||sub.reason==='check_failed') return '';
+  const head=(t)=>`<div><div class="eyebrow">Your plan</div><h2 style="font-size:1.25rem;margin-top:4px">${t}</h2></div>`;
+  if(sub.reason==='free_year') return `<section class="card stack">${head('Free for your first year')}
+    <p class="note" style="margin:0">Your family joined while Spelling Nest was in beta, so your first year is on us. Thank you for helping us test it.${sub.freeUntil?` Your free year runs until <b>${esc(prettyDate(dpart(sub.freeUntil)))}</b>, and we will tell you well before then.`:''}</p>
+    <p class="note" style="margin:0">There is nothing to pay and nothing to set up. You do not need to do anything today.</p></section>`;
+  const manage=(sub.status&&sub.status!=='none')?`<button class="ghost small" data-act="sub-manage" ${subBusy?'disabled':''}>Manage subscription</button>`:'';
+  if(sub.reason==='paid'||sub.reason==='paid_until_period_end'){
+    const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
+    const title=sub.reason==='paid'?'Subscribed':'Cancelled, still running';
+    const line=sub.reason==='paid'
+      ?(ends?`Your subscription renews on ${esc(ends)}.`:'Your subscription is active.')
+      :(ends?`You have cancelled. Practice carries on until ${esc(ends)}, and after that the app stays open to look at.`:'You have cancelled.');
+    return `<section class="card stack">${head(title)}<p class="note" style="margin:0">${line}</p>
+      <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
+  }
+  if(sub.reason==='before_trial'){
+    return `<section class="card stack">${head('Free trial not started yet')}
+      <p class="note" style="margin:0">Your five day free trial begins when you save your first word list, so that the five days are days your family can actually practise.</p></section>`;
+  }
+  if(sub.reason==='in_trial'){
+    const n=daysLeft(sub.trialEnds); const ends=sub.trialEnds?prettyDate(dpart(sub.trialEnds)):'';
+    return `<section class="card stack">${head('Free trial'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
+      <p class="note" style="margin:0">${ends?`Your trial runs until ${esc(ends)}. `:''}We hold no card of yours and nothing is charged automatically. When the trial ends, everything stays here to look at and new lessons pause until you subscribe.</p>
+      ${subChoose()}</section>`;
+  }
+  return `<section class="card stack">${head('Free trial finished')}
+    <p class="note" style="margin:0">Everything your family has done is still here and stays here. Lessons and word list changes start again the moment you subscribe.</p>
+    ${subChoose()}${manage?`<div class="row">${manage}</div>`:''}</section>`;
+}
 const S={account:defAccount(),pid:null,lists:blankLists(),progress:blankProgress()};
 let sb=null, user=null, syncMsg='', loadingProfile=false, deletedLists=new Set(), authMsg='', authEmail='', consentTicked=false, confirmWipe=false;
 const uuid=()=>{try{return crypto.randomUUID()}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}};
@@ -463,7 +564,7 @@ async function connect(){
   if(data&&data.session) boot(data.session);
   else if(!user){view='signin';renderChrome();renderView()}
 }
-function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false}
+function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};ukConfirmed=false;subBusy=false;subMsg=''}
 async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
@@ -478,7 +579,9 @@ async function boot(session){
 async function loadFamily(fam){
   const sp=await run(sb.from('spellers').select('*').eq('parent_id',user.id).order('created_at',{ascending:true}),'profiles');
   S.account={pin:fam.pin_hash||null,sound:fam.sound!==false,profiles:(sp||[]).map(s=>({id:s.id,name:s.name,year:s.school_year||'none',createdAt:Date.parse(s.created_at)||Date.now()}))};
+  await loadSubscription();
   afterAccount();
+  afterCheckout();
 }
 async function giveConsent(){
   try{
@@ -698,8 +801,10 @@ function playView(){
       ${cd?`<p class="note" style="margin-top:6px"><b>${esc(cd)}</b></p>`:''}</div>
       <div class="words">${list.words.map(w=>`<span class="chip ${S.progress.words[w]&&S.progress.words[w].mastered?'mastered':''}">${esc(w)}${pipsFor(w)}</span>`).join('')}</div>
       <p class="note">Green dots show the days each word was spelled from sound first time. Three dots means mastered.</p>
-      <button class="btn block pink" data-act="start" style="font-size:1.25rem;padding:18px">Start lesson</button>
-      <button class="ghost" data-act="hearall" style="justify-content:center">${ICON.speaker}Hear all the words</button>
+      ${subLocked()?`<p class="note" style="margin:0"><b>Kit is having a rest.</b> Your grown up needs to sort something out, and then you can practise again.</p>
+      <button class="ghost" data-act="gogrown" style="justify-content:center">Open Grown ups</button>`
+      :`<button class="btn block pink" data-act="start" style="font-size:1.25rem;padding:18px">Start lesson</button>
+      <button class="ghost" data-act="hearall" style="justify-content:center">${ICON.speaker}Hear all the words</button>`}
     </section>`
     :`<section class="card stack" style="text-align:center">
       <h2 style="font-size:1.3rem">No spellings yet</h2>
@@ -743,7 +848,12 @@ function grownView(){
   const lists=Object.entries(S.lists.lists||{}).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const act=activeList(); const p=profile(); const nm=esc(p?p.name:'');
   const defTitle='Week of '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long'});
-  return `
+  return `${subCard()}
+  ${subLocked()?`  <section class="card stack">
+    <div><div class="eyebrow">Word lists for ${nm}</div><h2 style="font-size:1.25rem;margin-top:4px">Word lists are paused</h2></div>
+    <p class="note" style="margin:0">Your saved lists are below and nothing has been removed. Adding and changing words starts again as soon as you subscribe.</p>
+  </section>
+`:`
   <section class="card stack">
     <div><div class="eyebrow">Word lists for ${nm}</div><h2 style="font-size:1.25rem;margin-top:4px">${draft.id?'Edit word list':'Add this week’s words'}</h2></div>
     <div><label class="lbl" for="d-title">List name</label><input type="text" id="d-title" value="${esc(draft.title||defTitle)}"></div>
@@ -754,6 +864,8 @@ function grownView(){
     <div class="draft"><span class="lbl">Words in this list (${draft.words.length})</span>
       <div class="words">${draft.words.length?draft.words.map((w,i)=>`<span class="chip">${esc(w)}<button data-rm="${i}" aria-label="Remove ${esc(w)}">×</button></span>`).join(''):'<span class="note">No words added yet.</span>'}</div></div>
     <div class="row"><button class="btn" data-act="savelist" ${draft.words.length?'':'disabled'}>Save and use this list</button>${draft.id||draft.words.length?`<button class="ghost" data-act="cleardraft">Cancel</button>`:''}</div>
+  </section>
+`}
   </section>
   <section class="card">
     <h2 style="font-size:1.25rem;margin-bottom:4px">Saved lists</h2>
@@ -912,10 +1024,10 @@ $('#view').addEventListener('click',e=>{
     case 'ob-finish': createProfile(); break;
     case 'addprofile': startOnboarding(true); break;
     case 'start': startLesson(); break;
-    case 'hearall': {const l=activeList(); if(l) sayAll(l.words); break}
+    case 'hearall': {if(subLocked())break; const l=activeList(); if(l) sayAll(l.words); break}
     case 'gogrown': track('grownups_opened',{},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
-    case 'addtyped': {const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
-    case 'savelist': {
+    case 'addtyped': {if(subLocked())break; const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
+    case 'savelist': {if(subLocked())break;
       keepTitle(); if(!draft.words.length) break;
       try{
         if(!S.lists||typeof S.lists!=='object') S.lists=blankLists();
@@ -933,6 +1045,10 @@ $('#view').addEventListener('click',e=>{
       break;
     }
     case 'cleardraft': draft={id:null,title:'',words:[],testDate:''}; renderView(); break;
+    case 'sub-uk': ukConfirmed=!ukConfirmed; subMsg=''; renderView(); break;
+    case 'sub-annual': startCheckout('annual'); break;
+    case 'sub-monthly': startCheckout('monthly'); break;
+    case 'sub-manage': openPortal(); break;
     case 'fb-idea': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='idea'; fbMsg=''; renderView(); break}
     case 'fb-problem': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='problem'; fbMsg=''; renderView(); break}
     case 'fb-send': sendFeedback(); break;
@@ -978,6 +1094,7 @@ const TYPES=[['unjumble',2],['missing',2],['lcwc',2],['hear',3]];
 function pickType(prev){const last2=prev.slice(-2).map(q=>q.type);let t;let guard=0;do{const total=TYPES.reduce((s,x)=>s+x[1],0);let r=Math.random()*total;t=TYPES.find(x=>(r-=x[1])<0)[0]}while(guard++<10&&last2.length===2&&last2[0]===t&&last2[1]===t);return t}
 function weightedPick(words,avoid){const pool=words.filter(w=>w!==avoid||words.length===1);const ws=pool.map(w=>S.progress.words[w]&&S.progress.words[w].mastered?1:3);let r=Math.random()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){if((r-=ws[i])<0)return pool[i]}return pool[0]}
 function startLesson(only){
+  if(subLocked()) return;
   const list=activeList(); if(!list||!list.words.length) return;
   const words=(only&&only.length)?only.slice():list.words; const n=(only&&only.length)?Math.max(words.length*2,4):Math.min(12,Math.max(6,words.length));
   const order=shuffle(words.slice()); const qs=[];
