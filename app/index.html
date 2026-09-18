@@ -333,7 +333,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.2';
+const APP_VERSION='1.3';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -558,11 +558,24 @@ async function connect(){
     if(session&&session.user&&(!user||user.id!==session.user.id)){setTimeout(()=>boot(session),0)}
     if(event==='SIGNED_OUT'){user=null;resetState();view='signin';renderChrome();renderView()}
   });
+  readAuthError();
   track('app_open',{referrer_host:refHost(),ref:refParam()});
   flushEvents();
   const {data}=await sb.auth.getSession();
   if(data&&data.session) boot(data.session);
   else if(!user){view='signin';renderChrome();renderView()}
+}
+function readAuthError(){
+  try{
+    const h=String(location.hash||'').replace(/^#/,'');
+    if(!h||!/(^|&)error/.test(h)) return;
+    const q=new URLSearchParams(h);
+    const code=q.get('error_code')||q.get('error')||'';
+    history.replaceState(null,'',location.pathname+location.search);
+    authMsg=/expired|invalid|access_denied/i.test(code)
+      ?'That sign in link had already been used, so it did not work. Ask for a code below and we will email you one instead.'
+      :'That sign in link did not work. Ask for a code below and we will email you one instead.';
+  }catch(e){}
 }
 function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};ukConfirmed=false;subBusy=false;subMsg=''}
 async function boot(session){
@@ -727,7 +740,7 @@ function renderView(){
   const focus=v.querySelector('[data-autofocus]'); if(focus) focus.focus();
 }
 
-let authSent=false;
+let authSent=false, authStage='email', authCode='', authBusy=false;
 let fbKind='idea', fbText='', fbMsg='', fbSending=false;
 async function sendFeedback(){
   const ta=$('#fb-text'); const msg=(ta&&ta.value||'').trim();
@@ -741,13 +754,24 @@ async function sendFeedback(){
   fbSending=false; renderView();
 }
 function signinView(){
-  return `<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Kit the owl.</p>
-  <section class="card stack"><div><h2 style="font-size:1.2rem">Grown ups: sign in</h2><p class="note" style="margin-top:4px">We email you a sign in link. There is no password to remember.</p></div>
+  const terms=`<p class="note">Spelling Nest is in beta. By signing in you agree to our <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</p>`;
+  const err=`<p class="err" id="si-err" role="alert" style="text-align:left">${esc(authMsg)}</p>`;
+  const head=`<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Kit the owl.</p>`;
+  if(authStage==='code'){
+    return `${head}
+  <section class="card stack"><div><h2 style="font-size:1.2rem">Check your email</h2><p class="note" style="margin-top:4px">We sent a six digit code to <b>${esc(authEmail)}</b>. Type it in below. It can take a minute to arrive, so check your junk folder too.</p></div>
+  <div><label class="lbl" for="si-code">Six digit code</label><input type="text" id="si-code" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" value="${esc(authCode)}" style="font-size:1.5rem;letter-spacing:.35em;text-align:center" data-autofocus></div>
+  ${err}
+  <button class="btn block pink" data-act="verify-code" ${authBusy?'disabled':''}>${authBusy?'Signing in…':'Sign in'}</button>
+  <div class="row"><button class="ghost small" data-act="send-code" ${authBusy?'disabled':''}>Send another code</button><button class="ghost small" data-act="auth-back">Use a different email address</button></div>
+  ${terms}</section></div>`;
+  }
+  return `${head}
+  <section class="card stack"><div><h2 style="font-size:1.2rem">Grown ups: sign in</h2><p class="note" style="margin-top:4px">We email you a six digit code. There is no password to remember.</p></div>
   <div><label class="lbl" for="si-email">Email address</label><input type="email" id="si-email" autocomplete="email" inputmode="email" value="${esc(authEmail)}" data-autofocus></div>
-  <p class="err" id="si-err" role="alert" style="text-align:left">${esc(authMsg)}</p>
-  <button class="btn block pink" data-act="send-link">${authSent?'Send the link again':'Email me a sign in link'}</button>
-  ${authSent?`<p class="note" role="status"><b>Check your email.</b> We sent a link to ${esc(authEmail)}. Open it on this device to sign in. It can take a minute to arrive, so check your junk folder too.</p>`:''}
-  <p class="note">Spelling Nest is in beta. By signing in you agree to our <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</p></section></div>`;
+  ${err}
+  <button class="btn block pink" data-act="send-code" ${authBusy?'disabled':''}>${authBusy?'Sending…':'Email me a sign in code'}</button>
+  ${terms}</section></div>`;
 }
 function consentView(){
   return `<div class="onboard">${owl()}<h1>Before you start</h1><p class="lead">For each child you add, Spelling Nest stores a first name or nickname, school year, word lists and spelling progress. There are no adverts and we never share this information.</p>
@@ -913,22 +937,45 @@ function grownView(){
 }
 function normaliseWords(text){return [...new Set(String(text).toLowerCase().split(/[\s,;.\/|]+/).map(w=>w.replace(/[^a-z]/g,'')).filter(w=>w.length>0&&w.length<=16))]}
 async function sendLink(){
-  const i=$('#si-email'); const email=(i&&i.value||'').trim(); authEmail=email;
+  if(authBusy) return;
+  const i=$('#si-email'); const typed=(i&&i.value||'').trim(); if(typed) authEmail=typed;
+  const email=authEmail;
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authMsg='Type a full email address, like name@example.com.';renderView();return}
-  authMsg=''; const b=$('[data-act="send-link"]'); if(b){b.disabled=true;b.textContent='Sending…'}
+  authMsg=''; authBusy=true; renderView();
   try{
-    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
+    const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
     if(error){authMsg=/rate|limit|seconds/i.test(error.message||'')?'Too many sign in emails just now. Wait a minute, then try again.':'The sign in email could not be sent: '+(error.message||'unknown error');authSent=false}
-    else authSent=true;
+    else {authSent=true; authCode=''; authStage='code';}
   }catch(e){authMsg='The sign in email could not be sent. Check your internet connection.';authSent=false}
   track('signin_link_requested',{outcome:authSent?'sent':'error'});
-  renderView();
+  authBusy=false; renderView();
 }
+async function verifyCode(){
+  if(authBusy) return;
+  const i=$('#si-code'); const code=String((i&&i.value||authCode||'')).replace(/\D/g,''); authCode=code;
+  if(code.length!==6){authMsg='The code is six digits. Type all six.';renderView();return}
+  authMsg=''; authBusy=true; renderView();
+  try{
+    const {error}=await sb.auth.verifyOtp({email:authEmail,token:code,type:'email'});
+    if(error){
+      authMsg=/expired/i.test(error.message||'')
+        ?'That code has expired. Ask for another one.'
+        :'That code was not right. Check the email again, or ask for another code.';
+      authCode=''; authBusy=false; renderView(); return;
+    }
+    /* onAuthStateChange takes it from here and boots the app. */
+  }catch(e){
+    authMsg='We could not sign you in just then. Check your internet connection and try again.';
+    authBusy=false; renderView(); return;
+  }
+  authBusy=false;
+}
+function authBack(){authStage='email';authCode='';authMsg='';authSent=false;renderView()}
 async function wipeFamily(){
   try{ await run(sb.from('families').delete().eq('parent_id',user.id),'family data'); }catch(e){ return; }
   track('account_deleted',{});
   confirmWipe=false; toast('All your family’s data has been deleted');
-  sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; view='signin'; renderChrome(); renderView();
+  sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
 }
 function toJpeg(file){
   return new Promise(resolve=>{
@@ -1006,8 +1053,11 @@ $('#view').addEventListener('click',e=>{
   if(t.dataset.delyes){const id=t.dataset.delyes;deletedLists.add(id);delete S.lists.lists[id];if(S.lists.activeListId===id)S.lists.activeListId=null;confirmDel=null;persistLists();renderView();toast('List deleted');return}
   switch(a){
     case 'send-link': sendLink(); break;
+    case 'send-code': sendLink(); break;
+    case 'verify-code': verifyCode(); break;
+    case 'auth-back': authBack(); break;
     case 'consent-go': if(consentTicked) giveConsent(); break;
-    case 'signout': authSent=false; authMsg=''; consentTicked=false; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
+    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
     case 'wipe': confirmWipe=true; renderView(); break;
     case 'wipeno': confirmWipe=false; renderView(); break;
     case 'wipeyes': wipeFamily(); break;
@@ -1076,6 +1126,7 @@ $('#view').addEventListener('change',async e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='si-email'){e.preventDefault();sendLink();return}
+  if(e.key==='Enter'&&e.target.id==='si-code'){e.preventDefault();verifyCode();return}
   if(e.key==='Enter'&&e.target.id==='ob-name'){e.preventDefault();const b=$('[data-act="ob-name"]');if(b)b.click()}
   if(document.querySelector('#view .keypad')&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){
     if(/^[0-9]$/.test(e.key)){const b=document.querySelector(`[data-key="${e.key}"]`);if(b){e.preventDefault();b.click()}}
