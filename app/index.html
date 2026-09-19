@@ -20,6 +20,14 @@
   --accent:#F7B1BF; --accent-soft:#FDE9EE; --accent-ink:#022140;
   --tile:#FFFFFF; --tile-ink:#022140; --tile-edge:#F7B1BF; --slot:#E4ECF3;
   --good:#1D855A; --good-soft:#DCF2E6; --bad:#BF3A36; --bad-soft:#FBE3E0;
+  /* --good-ink is the green for text on a light ground. The brand green #1D855A is
+     3.92:1 on --good-soft, under the 4.5:1 that WCAG 1.4.3 requires for small text.
+     #166B48 is the same hue at 5.54:1. Measured 19 September 2026. */
+  --good-ink:#166B48;
+  /* The keyboard focus ring, two colours so that one band always contrasts with the
+     backdrop. WCAG 1.4.11 wants 3:1. Navy is 13.96:1 or better on every light surface
+     in this app, and the white halo covers the case of a control on a dark band. */
+  --focus:#022140; --focus-halo:#FFFFFF;
   --owl-body:#022140; --owl-wing:#0B3563;
   --shadow:0 10px 30px rgba(2,33,64,.10);
   --tile-size:52px;
@@ -30,6 +38,7 @@
     --primary:#F7B1BF; --primary-ink:#022140; --primary-edge:#B9687C;
     --accent-soft:#2A2235; --tile:#15314F; --tile-ink:#FFFFFF; --tile-edge:#F7B1BF; --slot:#0F2842;
     --good:#63D59E; --good-soft:#103628; --bad:#FF8F85; --bad-soft:#3A1B22; --gold:#F2B650; --gold-soft:#35290F;
+    --good-ink:#63D59E; --focus:#F7B1BF; --focus-halo:#061527;
     --owl-body:#1D4A78; --owl-wing:#2A5E93; --shadow:0 10px 30px rgba(0,0,0,.35);
   }
 }
@@ -38,14 +47,19 @@
   --primary:#F7B1BF; --primary-ink:#022140; --primary-edge:#B9687C;
   --accent-soft:#2A2235; --tile:#15314F; --tile-ink:#FFFFFF; --tile-edge:#F7B1BF; --slot:#0F2842;
   --good:#63D59E; --good-soft:#103628; --bad:#FF8F85; --bad-soft:#3A1B22; --gold:#F2B650; --gold-soft:#35290F;
+  --good-ink:#63D59E; --focus:#F7B1BF; --focus-halo:#061527;
   --owl-body:#1D4A78; --owl-wing:#2A5E93; --shadow:0 10px 30px rgba(0,0,0,.35);
 }
 html,body{height:100%}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-bottom:120px;scroll-padding-top:12px}
 body{background:var(--ground);color:var(--ink);font-family:Outfit,"Segoe UI",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 *{box-sizing:border-box}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px;box-shadow:0 0 0 6px var(--focus-halo)}
+/* A date input does not match :focus-visible in Chromium, because Tab moves focus into
+   a field inside its shadow tree rather than to the host. Without this the only focus
+   indicator is the browser's own segment highlight. Measured 19 September 2026. */
+input[type="date"]:focus,input[type="date"]:focus-within{outline:3px solid var(--focus);outline-offset:2px;box-shadow:0 0 0 6px var(--focus-halo)}
 h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
 .app{max-width:600px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-inline:16px;padding-block:12px 110px}
 
@@ -157,7 +171,7 @@ textarea{min-height:96px;resize:vertical}
 .listrow:last-child{border-bottom:0}
 .listrow .t{flex:1;min-width:150px}
 .listrow .t b{display:block}
-.inuse{font-size:.78rem;font-weight:700;background:var(--good-soft);color:var(--good);border-radius:999px;padding:3px 10px}
+.inuse{font-size:.78rem;font-weight:700;background:var(--good-soft);color:var(--good-ink);border-radius:999px;padding:3px 10px}
 .switch{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .toggle{width:52px;height:30px;border-radius:999px;border:0;background:var(--surface-2);position:relative;flex:none}
 .toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
@@ -333,7 +347,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.7';
+const APP_VERSION='1.8';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -407,7 +421,7 @@ const blankLists=()=>({lists:{},activeListId:null});
 const blankProgress=()=>({xp:0,days:[],lessons:0,badges:{},words:{},cleanHear:0,history:[]});
 
 /* ---- subscription gate (v1.2) ---- */
-let sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};
+let sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null,cancelling:false,cancelledAt:null};
 let ukConfirmed=false, termsAgreed=false, termsAt=null, subBusy=false, subMsg='', subDeclined=false;
 function subCan(){ return sub.can!==false }
 function subLocked(){ return sub.loaded && sub.can===false }
@@ -419,10 +433,10 @@ async function loadSubscription(){
     const d=data||{};
     sub={loaded:true,status:d.status||null,can:d.can_practise!==false,reason:d.reason||'',
          trialStarts:d.trial_starts_at||null,trialEnds:d.trial_ends_at||null,periodEnds:d.period_ends_at||null,
-         freeUntil:d.free_until||null};
+         freeUntil:d.free_until||null,cancelling:d.cancels_at_period_end===true,cancelledAt:d.cancelled_at||null};
   }catch(e){
     /* Fail open. A child is never stopped from practising because a check failed. */
-    sub={loaded:true,status:null,can:true,reason:'check_failed',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};
+    sub={loaded:true,status:null,can:true,reason:'check_failed',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null,cancelling:false,cancelledAt:null};
   }
 }
 function daysLeft(iso){ if(!iso) return null; const ms=Date.parse(iso)-Date.now(); if(isNaN(ms)) return null; return Math.max(0,Math.ceil(ms/86400000)) }
@@ -489,15 +503,19 @@ function subCard(){
   const manage=(sub.status&&sub.status!=='none')?`<button class="ghost small" data-act="sub-manage" ${subBusy?'disabled':''}>Manage subscription</button>`:'';
   if(sub.reason==='paid'||sub.reason==='paid_until_period_end'){
     const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
-    const title=sub.reason==='paid'?'Subscribed':'Cancelled, still running';
-    const line=sub.reason==='paid'
+    const stopping=sub.reason!=='paid'||sub.cancelling;
+    const title=stopping?'Cancelled, still running':'Subscribed';
+    const line=!stopping
       ?(ends?`Your subscription renews on ${esc(ends)}.`:'Your subscription is active.')
-      :(ends?`You have cancelled. Practice carries on until ${esc(ends)}, and after that the app stays open to look at.`:'You have cancelled.');
+      :(ends?`You have cancelled, so there is nothing more to pay. Practice carries on until <b>${esc(ends)}</b>, and after that the app stays open to look at.`:'You have cancelled. There is nothing more to pay.');
     return `<section class="card stack">${head(title)}<p class="note" style="margin:0">${line}</p>
       <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
   }
   if(sub.reason==='in_trial'&&sub.status==='trialling'){
     const n=daysLeft(sub.trialEnds); const ends=sub.trialEnds?prettyDate(dpart(sub.trialEnds)):'';
+    if(sub.cancelling) return `<section class="card stack">${head('Cancelled'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
+      <p class="note" style="margin:0"><b>You have cancelled and nothing will be charged.</b> ${ends?`Your free trial carries on until <b>${esc(ends)}</b>. `:''}After that everything your family has done stays here to look at, and lessons pause until you subscribe again.</p>
+      <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
     return `<section class="card stack">${head('Free trial'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
       <p class="note" style="margin:0">${ends?`Your first payment is due on <b>${esc(ends)}</b>. `:''}We will email you before then. Cancel any time before that date and you will not be charged.</p>
       <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
@@ -518,7 +536,7 @@ function subCard(){
     ${subChoose()}${manage?`<div class="row">${manage}</div>`:''}</section>`;
 }
 const S={account:defAccount(),pid:null,lists:blankLists(),progress:blankProgress()};
-let sb=null, user=null, syncMsg='', loadingProfile=false, deletedLists=new Set(), authMsg='', authEmail='', consentTicked=false, confirmWipe=false;
+let sb=null, user=null, syncMsg='', loadingProfile=false, deletedLists=new Set(), authMsg='', authEmail='', consentTicked=false, confirmWipe=false, wipeBusy=false;
 const uuid=()=>{try{return crypto.randomUUID()}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}};
 function syncErr(e,what){
   try{if(what!=='usage event') track('sync_error',{what:String(what||'unknown').slice(0,40),code:String((e&&e.code)||'').slice(0,40)})}catch(x){}
@@ -588,7 +606,7 @@ function readAuthError(){
       :'That sign in link did not work. Ask for a code below and we will email you one instead.';
   }catch(e){}
 }
-function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null};ukConfirmed=false;termsAgreed=false;termsAt=null;subBusy=false;subMsg='';subDeclined=false}
+function resetState(){S.account=defAccount();S.pid=null;S.lists=blankLists();S.progress=blankProgress();unlocked=false;sub={loaded:false,status:null,can:true,reason:'',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null,cancelling:false,cancelledAt:null};ukConfirmed=false;termsAgreed=false;termsAt=null;subBusy=false;subMsg='';subDeclined=false}
 async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
@@ -734,7 +752,7 @@ function renderChrome(){
   const tabs=[['play','Play',ICON.play],['progress','Progress',ICON.chart],['badges','Badges',ICON.medal],['grown','Grown ups',ICON.lock]];
   $('#tabs').innerHTML=tabs.map(([id,l,ic])=>`<button class="tab" data-tab="${id}" ${view===id?'aria-current="page"':''}>${ic}<span>${l}</span></button>`).join('');
 }
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;view=b.dataset.tab;if(view==='grown'&&!unlocked){pinFlow=S.account.pin?'gate':'change1';pinEntry='';pinErr=''}renderChrome();renderView();window.scrollTo(0,0)});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;view=b.dataset.tab;if(view==='grown'){track('grownups_opened',{via:'tab'},S.pid);if(!unlocked){pinFlow=S.account.pin?'gate':'change1';pinEntry='';pinErr=''}}renderChrome();renderView();window.scrollTo(0,0)});
 $('#pills').addEventListener('click',e=>{if(e.target.closest('[data-act="switch"]')){view='pick';unlocked=false;renderChrome();renderView()}});
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
 
@@ -836,7 +854,7 @@ function pickView(){
   <div class="pickgrid">${ps.map(p=>`<button class="pickcard" data-pick="${esc(p.id)}">${avatarHTML(p,'lg')}<span>${esc(p.name)}</span><small>${p.year&&p.year!=='none'?esc(p.year):'&nbsp;'}</small></button>`).join('')}
   <button class="pickcard add" data-act="addprofile"><span class="avatar lg">+</span><span>Add a speller</span><small>&nbsp;</small></button></div></div>`;
 }
-function pipsFor(w){const s=S.progress.words[w];const n=s?Math.min(3,s.days.length):0;return `<span class="pips" aria-label="${n} of 3 days">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`}
+function pipsFor(w){const s=S.progress.words[w];const n=s?Math.min(3,s.days.length):0;return `<span class="pips" role="img" aria-label="${n} of 3 days">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`}
 function playView(){
   const name=esc(profileName()||'there'); const st=streak(); const done=S.progress.days.includes(today());
   const line=done?`You have practised today. Fancy another go?`:st>0?`Keep your <b>${st} day streak</b> going!`:`Ready to practise your spellings?`;
@@ -959,8 +977,8 @@ function grownView(){
     <p class="note">Signed in as <b>${esc(user&&user.email||'')}</b>. Word lists and progress are saved to your account, so they work on any device where you sign in.</p>
     ${syncMsg?`<p class="note danger">${esc(syncMsg)}</p>`:''}
     <div class="row"><button class="ghost small" data-act="signout">Sign out</button><a class="ghost small linkbtn" href="/privacy.html" target="_blank" rel="noopener">Privacy notice</a></div>
-    <div class="row">${confirmWipe?`<button class="ghost small danger" data-act="wipeyes">Delete all our data for good</button><button class="ghost small" data-act="wipeno">Keep our data</button>`:`<button class="ghost small danger" data-act="wipe">Delete all our family's data</button>`}</div>
-    <p class="note">Deleting removes every speller, word list and score. To remove your email address as well, contact us using the details in the privacy notice.</p>
+    <div class="row">${confirmWipe?`<button class="ghost small danger" data-act="wipeyes" ${wipeBusy?'disabled':''}>${wipeBusy?'Deleting\u2026':'Delete all our data for good'}</button><button class="ghost small" data-act="wipeno" ${wipeBusy?'disabled':''}>Keep our data</button>`:`<button class="ghost small danger" data-act="wipe">Delete all our family's data</button>`}</div>
+    <p class="note">Deleting removes everything: every speller, word list and score, your usage history, and your sign in account and email address. If you have a subscription it is stopped at the same time, so nothing further is charged. It cannot be undone. The one thing we have to keep is the record of any payment you have made, because tax law requires it; that is an amount and a date, and nothing about your children. The <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a> explains it.</p>
   </section>`;
 }
 /* Words keep their apostrophes. Stripping them, as versions up to 1.4 did,
@@ -1004,10 +1022,39 @@ async function verifyCode(){
   authBusy=false;
 }
 function authBack(){authStage='email';authCode='';authMsg='';authSent=false;renderView()}
+/* Deleting a family goes through the delete-family Edge Function, not a client delete.
+   A browser cannot remove the sign in account, and until 19 September 2026 it did not
+   even try, so a parent who deleted everything kept their email address on file and
+   their child's usage history with it. The function deletes the auth user, which
+   cascades to every table, and cancels any live subscription first so nobody is charged
+   for an account that no longer exists.
+
+   If the function cannot be reached we still remove the family's own data, because that
+   is most of what was asked for, but we say plainly that it is not finished rather than
+   showing the same reassuring message. Telling someone their data is gone when it is not
+   is the fault this whole change exists to fix. */
 async function wipeFamily(){
-  try{ await run(sb.from('families').delete().eq('parent_id',user.id),'family data'); }catch(e){ return; }
-  track('account_deleted',{});
-  confirmWipe=false; toast('All your family’s data has been deleted');
+  if(wipeBusy) return; wipeBusy=true; renderView();
+  let done=false, partial=false, note='';
+  try{
+    const j=await fnCall('delete-family',{});
+    if(j&&j.ok){ done=true; note=j.cancelled_subscription?'Everything has been deleted and your subscription has been stopped.':'Everything has been deleted.'; }
+    else { note=(j&&j.error)||'Something went wrong.'; }
+  }catch(e){ note='We could not reach the server.'; }
+
+  if(!done){
+    /* Fall back to what the browser can do, and be honest about the rest. */
+    try{ await run(sb.from('families').delete().eq('parent_id',user.id),'family data'); partial=true; }catch(e){}
+    wipeBusy=false; confirmWipe=false;
+    syncMsg=(partial
+      ? 'Your family’s lists and progress have been deleted, but your sign in account could not be removed. '
+      : 'Your data has not been deleted. ')
+      +note+' Please email info@spellingnest.co.uk and we will finish it by hand.';
+    renderView();
+    return;
+  }
+
+  wipeBusy=false; confirmWipe=false; toast(note);
   sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
 }
 function toJpeg(file){
@@ -1108,7 +1155,7 @@ $('#view').addEventListener('click',e=>{
     case 'addprofile': startOnboarding(true); break;
     case 'start': startLesson(); break;
     case 'hearall': {if(subLocked())break; const l=activeList(); if(l) sayAll(l.words); break}
-    case 'gogrown': track('grownups_opened',{},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
+    case 'gogrown': track('grownups_opened',{via:'button'},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
     case 'addtyped': {if(subLocked())break; const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
     case 'savelist': {if(subLocked())break;
       keepTitle(); if(!draft.words.length) break;
@@ -1207,7 +1254,7 @@ function clearTimers(){lesson.timers.forEach(clearTimeout);lesson.timers=[]}
 const cur=()=>lesson.qs[lesson.idx];
 function shell(title,sub,mood){
   const pct=Math.round(100*lesson.idx/lesson.qs.length);
-  $('#lesson-inner').innerHTML=`<div class="lhead"><button class="xbtn" data-l="quit" aria-label="Stop lesson">${ICON.x}</button><div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><span class="hearts" aria-label="${lesson.hearts} hearts">${ICON.heart}${lesson.hearts}</span></div>
+  $('#lesson-inner').innerHTML=`<div class="lhead"><button class="xbtn" data-l="quit" aria-label="Stop lesson">${ICON.x}</button><div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="${pct} per cent through this lesson"><i style="width:${pct}%"></i></div><span class="hearts" aria-label="${lesson.hearts} hearts">${ICON.heart}${lesson.hearts}</span></div>
   <div class="prompt">${owl(mood||'')}<div><h2>${title}</h2><p>${sub}</p></div></div>
   <div class="lbody" id="lbody"></div>
   <div class="laction" id="laction"><div id="feedback" aria-live="polite"></div><div class="listen" id="listenrow"><button class="ghost" data-l="hear">${ICON.speaker}Hear it</button><button class="ghost" data-l="slow">${ICON.slow}Slowly</button>${(lesson.qs&&lesson.qs[lesson.idx]&&sentenceFor(lesson.qs[lesson.idx].word))?`<button class="ghost" data-l="sentence">${ICON.speaker}In a sentence</button>`:''}</div><button class="btn block" id="mainbtn" data-l="main" disabled>Check</button></div>`;
@@ -1222,7 +1269,7 @@ function Board(host,{pool,length,fixed,free}){
   const cls=i=>{if(result==null)return'';const s=slots[i];if(!s||s.fixed)return'';return (s&&pool[s.t]===result[i])?'right':'wrong'};
   function render(){
     setSize();
-    const slotHTML=(s,i)=>s==null?`<span class="slot" aria-label="empty space"></span>`:s.fixed?`<span class="slot fixed">${esc(s.fixed)}</span>`:`<button class="slot filled ${cls(i)}" data-s="${i}" ${locked?'disabled':''} aria-label="${esc(pool[s.t])}, tap to remove">${esc(pool[s.t])}</button>`;
+    const slotHTML=(s,i)=>s==null?`<span class="slot" role="img" aria-label="empty space"></span>`:s.fixed?`<span class="slot fixed">${esc(s.fixed)}</span>`:`<button class="slot filled ${cls(i)}" data-s="${i}" ${locked?'disabled':''} aria-label="${esc(pool[s.t])}, tap to remove">${esc(pool[s.t])}</button>`;
     host.innerHTML=`<div class="slots">${isFree&&!slots.length?'<span class="free-placeholder">Tap the letters to spell the word</span>':slots.map(slotHTML).join('')}</div>
     <div class="pool" style="max-width:${Math.ceil(pool.length/Math.ceil(pool.length/7))*(parseInt(host.style.getPropertyValue('--tile-size'))+7)}px;margin-inline:auto">${pool.map((ch,i)=>`<button class="tile" data-t="${i}" ${used[i]||locked?'disabled':''} aria-label="letter ${esc(ch)}">${used[i]?'':esc(ch)}</button>`).join('')}</div>
     ${isFree&&!locked?`<div class="free-tools"><button class="ghost small" data-undo ${slots.length?'':'disabled'}>Undo last letter</button></div>`:''}`;
