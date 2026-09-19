@@ -237,6 +237,15 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
 .foot a:hover{color:var(--ink);text-decoration:underline}
 .legal{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);font-size:.88rem}
 .hand{font-family:Andika,Outfit,sans-serif}
+.goldrule{height:7px;width:140px;background:var(--gold);border-radius:99px;margin:0 auto 18px}
+.plans{display:grid;gap:18px;max-width:720px;margin:0 auto}
+@media(min-width:680px){.plans{grid-template-columns:1fr 1fr}}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;box-shadow:var(--shadow);text-align:left}
+.plan h3{font-size:1.1rem;margin-bottom:8px}
+.plan p.small{color:var(--ink-soft);font-size:.96rem;margin-top:8px}
+.amount{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.amount span{font-size:1rem;font-weight:600;color:var(--ink-soft);letter-spacing:0}
+.saving{display:inline-block;margin-top:12px;font-size:1.5rem;font-weight:800;color:var(--good);letter-spacing:-.02em}
 </style>
 <script type="application/ld+json">
 {
@@ -336,7 +345,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       "name": "How do I delete our data?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Open Grown ups and choose to delete all of your family's data. That removes the profiles, word lists and progress. You can also email info@spellingnest.co.uk to have your email address removed from the sign in system."
+        "text": "Open Grown ups and choose to delete all of your family's data. That removes your sign in account and email address, the children's profiles, the word lists and all progress, and it stops any subscription at the same time. You do not need to email us. The one thing kept is the record of a payment, with your name no longer attached to it, because tax law requires us to hold it."
       }
     }
   ]
@@ -438,6 +447,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       <a href="#how">How it works</a>
       <a href="#practice">Ways to practise</a>
       <a href="/look-cover-write-check/">The method</a>
+      <a href="#price">What it costs</a>
       <a href="#grownups">For grown ups</a>
       <a href="/faq/">Questions</a>
     </nav>
@@ -598,6 +608,36 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
   </div>
 </section>
 
+<!-- WHAT IT COSTS -->
+<section id="price">
+  <div class="wrap">
+    <div class="head center">
+      <p class="eyebrow">What it costs</p>
+      <div class="goldrule"></div>
+      <h2>Fourteen days free, then less than a coffee a month.</h2>
+      <p class="lead">One price for your whole family, however many children you add. Your card is taken when you start so that practice carries on without interruption, and nothing is charged for fourteen days. Cancel before then and you pay nothing at all.</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Monthly</h3>
+        <p class="amount">£3<span> a month</span></p>
+        <p class="small">Cancel any time, in no more steps than it took to subscribe.</p>
+      </div>
+      <div class="plan">
+        <h3>Yearly</h3>
+        <p class="amount">£20<span> a year</span></p>
+        <p><span class="saving">Save £16</span></p>
+        <p class="small">That is twelve months for the price of about seven.</p>
+      </div>
+    </div>
+    <div class="reassure" style="justify-content:center;margin-top:24px">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every child in your family</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>No adverts, no tracking</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Nothing is ever deleted if you stop</span>
+    </div>
+  </div>
+</section>
+
 <!-- PROGRESS BAND -->
 <section class="band">
   <div class="wrap showcase">
@@ -713,7 +753,8 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       </details>
       <details>
         <summary>How do I delete our data?</summary>
-        <p>Open Grown ups and choose to delete all of your family's data. That removes the profiles, word lists and progress. You can also email <a href="mailto:info@spellingnest.co.uk">info@spellingnest.co.uk</a> to have your email address removed from the sign in system.</p>
+        <p>Open Grown ups and choose to delete all of your family's data. That removes your sign in account and email address, the children's profiles, the word lists and all progress, and it stops any subscription at the same time. You do not need to email us.</p>
+        <p>The one thing kept is the record of a payment, with your name no longer attached to it, because tax law requires us to hold it.</p>
       </details>
     </div>
   </div>
