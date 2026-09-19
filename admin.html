@@ -224,8 +224,15 @@ input[type=email],input[type=number],input[type=text]{font:inherit;font-size:.95
     </section>
 
     <section class="card">
+      <h2>Where families are in the purchase journey</h2>
+      <p class="sub" id="stagesub"></p>
+      <div id="c-stages"></div>
+      <div id="t-intrial" style="margin-top:14px"></div>
+    </section>
+
+    <section class="card">
       <h2>Trials and churn</h2>
-      <p class="sub">Beta families held free for life are excluded from every denominator here.</p>
+      <p class="sub">Beta families in their free first year are excluded from every denominator here.</p>
       <div class="kpis" id="tkpis"></div>
       <div class="grid2" style="margin-top:14px">
         <div>
@@ -277,7 +284,7 @@ var $=function(s){return document.querySelector(s)};
 var esc=function(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var fmt=function(n){return (n==null||isNaN(n))?'–':Number(n).toLocaleString('en-GB')};
 var plural=function(n,one,many){return fmt(n)+' '+((n===1)?one:(many||one+'s'))};
-var STATUS_LABEL={free_beta:'Free beta, for life',active:'Active',trialling:'In trial',past_due:'Payment failed',cancelled:'Cancelled',none:'No subscription'};
+var STATUS_LABEL={free_beta:'Free beta year',active:'Active',trialling:'In trial',past_due:'Payment failed',cancelled:'Cancelled',none:'No subscription'};
 var wkLabel=function(d){var x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short'})};
 
 /* ---------- tooltip ---------- */
@@ -335,17 +342,22 @@ function lineChart(el,series,labels,opt){
   el.innerHTML=svgWrap(W,H,s); bindTip(el);
 }
 
-function funnelChart(el,stages){
+function funnelChart(el,stages,opt){
+  opt=opt||{};
   var W=1040, rowH=42, H=stages.length*rowH+8, L=210, R=90, iw=W-L-R;
-  var top=stages[0]?stages[0].count:0;
+  // A funnel scales against its first stage; a set of mutually exclusive stages must
+  // scale against the largest, or the biggest bar runs off the edge.
+  var top=opt.drops===false
+    ? Math.max.apply(null,stages.map(function(x){return x.count}).concat([0]))
+    : (stages[0]?stages[0].count:0);
   var ramp=['var(--ord-1)','var(--ord-2)','var(--ord-3)','var(--ord-4)','var(--ord-5)'];
   var s='';
   stages.forEach(function(st,i){
     var y=i*rowH+6, w=top?Math.max(2,iw*st.count/top):2;
     var prev=i?stages[i-1].count:null;
-    var drop=(prev!==null&&prev>0)?Math.round(100*(prev-st.count)/prev):null;
+    var drop=(opt.drops===false||prev===null||prev<=0)?null:Math.round(100*(prev-st.count)/prev);
     s+='<text class="ax" x="'+(L-10)+'" y="'+(y+21)+'" text-anchor="end" style="font-size:11px;fill:var(--text-secondary)">'+esc(st.stage)+'</text>';
-    s+='<rect x="'+L+'" y="'+y+'" width="'+w+'" height="26" rx="4" fill="'+(ramp[Math.min(i,4)])+'" data-tip="'+esc(st.stage+': '+st.count+' of '+top)+'"/>';
+    s+='<rect x="'+L+'" y="'+y+'" width="'+w+'" height="26" rx="4" fill="'+(opt.color||ramp[Math.min(i,4)])+'" data-tip="'+esc(st.stage+': '+st.count+(opt.drops===false?'':' of '+top))+'"/>';
     s+='<text class="ax" x="'+(L+w+8)+'" y="'+(y+18)+'" style="font-size:12px;fill:var(--text-primary);font-weight:600">'+fmt(st.count)+'</text>';
     if(drop!==null&&drop>0) s+='<text class="ax" x="'+(L+w+8)+'" y="'+(y+31)+'" style="font-size:10px">−'+drop+'%</text>';
   });
@@ -480,7 +492,7 @@ function render(){
   var gbp0=function(p){return (p==null)?'\u2013':'\u00a3'+Math.round(p/100).toLocaleString('en-GB')};
   var subs=rv.subscribers||{}, rp=rv.receipts_period||{}, ra=rv.receipts_all_time||{}, chn=rv.churn||{}, tr=rv.trials||{};
   $('#revsub').textContent=(subs.active||0)===0
-    ? 'No paying subscriptions yet. '+fmt(rv.free_beta||0)+' beta families are held free for life and are excluded from every conversion and churn figure.'
+    ? 'Nobody is paying yet. '+fmt(rv.free_beta||0)+' beta families are in their free first year and are excluded from every conversion and churn figure.'
     : 'Modelled from the plans families are on, and actual receipts from Stripe, side by side.';
   $('#rkpis').innerHTML=
       kpi('MRR, modelled', gbp(rv.mrr_pence), fmt(subs.monthly)+' monthly, '+fmt(subs.annual)+' annual')
@@ -489,7 +501,8 @@ function render(){
     + kpi('Received all time', gbp(ra.net_pence), fmt(ra.payers)+' paying families, net of fees')
     + kpi('ARPU', gbp(rv.arpu_pence), 'per active subscriber per month')
     + kpi('Stripe fee rate', rp.fee_rate_pct==null?'\u2013':rp.fee_rate_pct+'%', rp.fee_rate_pct==null?'actual rate, once a payment lands':'actual, not assumed')
-    + kpi('Revenue at risk', gbp(rv.mrr_at_risk_pence), plural(subs.past_due||0,'family','families')+' with a failed payment');
+    + kpi('Revenue at risk', gbp(rv.mrr_at_risk_pence), plural(subs.past_due||0,'family','families')+' with a failed payment')
+    + kpi('Committed in trial', gbp(rv.mrr_in_trial_pence), 'trials not cancelled, if they all convert');
   var mo=rv.months||[];
   barChart($('#c-receipts'), mo.map(function(m){
     return {k:new Date(m.month+'T00:00:00').toLocaleDateString('en-GB',{month:'short'}),v:Math.round((m.net_pence||0)/100),
@@ -507,13 +520,31 @@ function render(){
     mo.map(function(m){return {m:new Date(m.month+'T00:00:00').toLocaleDateString('en-GB',{month:'short',year:'numeric'}),i:m.invoices,g:gbp(m.gross_pence),n:gbp(m.net_pence)}}),
     'No payments received yet.');
 
+  /* purchase journey stages */
+  var stages=rv.stages||[], staged=stages.reduce(function(a,x){return a+x.count},0);
+  $('#stagesub').textContent='Every family with a paid account, by stage. '+fmt(rv.free_beta||0)
+    +' beta families in their free first year are not counted here. Trial length: '+(rv.trial_days||14)+' days.';
+  funnelChart($('#c-stages'), stages.map(function(x){return {stage:x.stage,count:x.count}}),
+    {drops:false, color:'var(--series-1)'});
+  var inTrial=rv.in_trial||[];
+  table($('#t-intrial'),
+    [{t:'Plan',k:'plan'},{t:'Started',k:'start'},{t:'Trial ends',k:'ends'},{t:'Days left',k:'left',num:true},{t:'Status',k:'st'}],
+    inTrial.map(function(x){return {
+      plan:(x.plan==='year'?'Annual':'Monthly')+' \u00a3'+((x.amount_pence||0)/100).toFixed(2),
+      start:new Date(x.started).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      ends:new Date(x.trial_ends).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      left:x.days_left, st:x.cancelling?'Cancelling at trial end':'Will start paying'}}),
+    'Nobody is on a trial at the moment.');
+
   /* trials and churn */
   $('#tkpis').innerHTML=
-      kpi('Trials started', fmt(tr.started), plural(tr.matured||0,'has','have')+' run the full five days')
-    + kpi('Trial to paid', tr.conversion_pct==null?'\u2013':tr.conversion_pct+'%', fmt(tr.converted)+' of '+fmt(tr.matured)+' matured trials')
-    + kpi('Time to pay', tr.median_days_to_payment==null?'\u2013':tr.median_days_to_payment+' days', 'median, trial start to first payment')
-    + kpi('Cancellations', fmt(chn.cancellations), plural(chn.pending_cancel||0,'more is','more are')+' set to end at the period end')
-    + kpi('Monthly churn', chn.monthly_churn_pct==null?'\u2013':chn.monthly_churn_pct+'%', 'of active plus cancelled in the period')
+      kpi('On trial now', fmt(tr.in_trial_now), plural(tr.cancelling_in_trial||0,'of them has','of them have')+' already cancelled')
+    + kpi('Trials started', fmt(tr.started_in_period), 'first subscriptions in the period')
+    + kpi('Trial to paid', tr.conversion_pct==null?'\u2013':tr.conversion_pct+'%', fmt(tr.converted)+' of '+fmt(tr.trial_ended)+' trials that have ended')
+    + kpi('Lost during trial', fmt(tr.lost_in_trial), 'cancelled before paying anything')
+    + kpi('Time to cancel', tr.median_hours_to_cancel==null?'\u2013':tr.median_hours_to_cancel+' hours', 'median, trial start to cancelling')
+    + kpi('Cancellations after paying', fmt(chn.paid_cancellations), fmt(chn.trial_cancellations)+' more cancelled during a trial')
+    + kpi('Monthly churn', chn.monthly_churn_pct==null?'\u2013':chn.monthly_churn_pct+'%', 'paying families only, trials excluded')
     + kpi('Summer cancellations', chn.summer_share_pct==null?'\u2013':chn.summer_share_pct+'%', fmt(chn.summer_cancellations)+' of '+fmt(chn.all_cancellations)+' fell in June to August');
   var ba=(rv.conversion_by_activation||[]).map(function(x){return {
     grp:x.practised_in_trial?'Practised during the trial':'Did not practise',
