@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Spelling Nest · weekly school spellings, practised in ten minutes a day</title>
-<meta name="description" content="Spelling Nest turns your child's weekly spelling list into a short daily game. For primary school children aged 5 to 11. Fourteen days free, then £3 a month or £20 a year for the whole family.">
+<meta name="description" content="Turn the spelling list your child brings home from school into a short daily game. Look, cover, write, check, the method primary schools use, for children aged 5 to 11. Nothing to install.">
 <meta name="theme-color" content="#F1F5F8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#061527" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://spellingnest.co.uk/">
@@ -132,9 +132,6 @@ header .btn{margin-left:auto;white-space:nowrap}
 .grid{display:grid;gap:18px}
 .g3{grid-template-columns:1fr}
 @media(min-width:760px){.g3{grid-template-columns:repeat(3,1fr)}}
-.g4{grid-template-columns:1fr}
-@media(min-width:700px){.g4{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1040px){.g4{grid-template-columns:repeat(4,1fr)}}
 .g2{grid-template-columns:1fr}
 @media(min-width:760px){.g2{grid-template-columns:repeat(2,1fr)}}
 .card{
@@ -240,18 +237,183 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
 .foot a:hover{color:var(--ink);text-decoration:underline}
 .legal{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);font-size:.88rem}
 .hand{font-family:Andika,Outfit,sans-serif}
-
-/* pricing */
-.goldrule{height:7px;width:140px;background:var(--gold);border-radius:99px;margin:0 auto 18px}
-.plans{display:grid;gap:18px;max-width:720px;margin:0 auto}
-@media(min-width:680px){.plans{grid-template-columns:1fr 1fr}}
-.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;box-shadow:var(--shadow);text-align:left}
-.plan h3{font-size:1.1rem;margin-bottom:8px}
-.amount{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1}
-.amount span{font-size:1rem;font-weight:600;color:var(--ink-soft);letter-spacing:0}
-.saving{display:inline-block;margin-top:12px;font-size:1.5rem;font-weight:800;color:var(--good);letter-spacing:-.02em}
-.plan p.small{color:var(--ink-soft);font-size:.96rem;margin-top:8px}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Who is it for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Primary school children, roughly ages 5 to 11, from Reception to Year 6. It suits any child who gets a spelling list to learn at home."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there an app to install?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Spelling Nest opens in a browser on a phone, tablet or laptop. If you want it to feel like an app, use your browser's \"Add to home screen\" option and it will open full screen from an icon."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long should my child play?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One lesson a day is plenty. A lesson is six to twelve questions and usually takes under ten minutes. Practice counts towards the streak on any day a lesson is finished."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do this week's words get in?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A grown up types or pastes them into the Grown ups area. The list is cleaned up automatically, so you can paste straight from a message or a photo caption without tidying it first."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it follow the national curriculum?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Spelling Nest does not set the words. It practises the list your child's school sends home, so it matches whatever they are being taught that week. Every new profile starts with one example list so you can try it before your next list arrives."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I add more than one child?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Each child gets their own profile, their own word lists and their own progress, badges and streak, all under one grown up sign in."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does my child need to type?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Every answer is given by tapping letter tiles. Spelling Nest never opens a keyboard for an answer, so spelling is tested rather than typing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens when my child gets stuck?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On a Listen and spell question, Kit the owl steps in without being asked: first a slow replay with each letter group lighting up, then the first letter, then the number of letters and where the tricky part sits. Words that were helped still count for XP, but not towards mastery."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work offline?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Spelling Nest needs an internet connection so that progress is saved to your account and is there on every device your family uses."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I sign in?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "With your email address. We send you a link that signs you in, so there is no password to remember or reset. Your child never needs an email address of their own."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does it cost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "£3 a month, or £20 for the year, which saves you £16. One subscription covers every child in your family, not one child each. New families start with a 14 day free trial, and the first payment is taken at the end of it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I delete our data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Open Grown ups and choose to delete all of your family's data. That removes the profiles, word lists and progress. You can also email info@spellingnest.co.uk to have your email address removed from the sign in system."
+      }
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Spelling Nest",
+  "url": "https://spellingnest.co.uk/",
+  "applicationCategory": "EducationalApplication",
+  "applicationSubCategory": "Spelling practice",
+  "operatingSystem": "Any modern web browser on phone, tablet or laptop",
+  "browserRequirements": "Requires JavaScript and an internet connection",
+  "inLanguage": "en-GB",
+  "isAccessibleForFree": false,
+  "description": "Spelling Nest turns the weekly spelling list a child brings home from school into a short daily game. A lesson is six to twelve questions and usually takes under ten minutes. A word counts as mastered only once it has been spelled from sound, first time, with no clues, on three different days. For primary school children aged 5 to 11.",
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": "student",
+    "audienceType": "Primary school children aged 5 to 11 and their parents"
+  },
+  "educationalUse": "Practice",
+  "learningResourceType": "Interactive activity",
+  "teaches": "Spelling, using the look, cover, write, check method",
+  "featureList": [
+    "Add the school's own weekly spelling list",
+    "Four question types: unjumble, missing letters, look cover write check, and listen and spell",
+    "Words read aloud by the device's own voice",
+    "Answers given by tapping letter tiles, so no keyboard is needed",
+    "A scorecard after every lesson showing what was right first time",
+    "Mastery requires three correct spellings from sound on three different days",
+    "Several children under one grown up account",
+    "Grown ups area behind a four digit PIN",
+    "No adverts and no third party tracking scripts"
+  ],
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Monthly",
+      "price": "3.00",
+      "priceCurrency": "GBP",
+      "availability": "https://schema.org/InStock",
+      "description": "Per family, every child included. 14 day free trial, then billed monthly."
+    },
+    {
+      "@type": "Offer",
+      "name": "Annual",
+      "price": "20.00",
+      "priceCurrency": "GBP",
+      "availability": "https://schema.org/InStock",
+      "description": "Per family, every child included. Saves \u00a316 against paying monthly. 14 day free trial, then billed monthly."
+    }
+  ],
+  "publisher": { "@id": "https://spellingnest.co.uk/#organization" }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://spellingnest.co.uk/#organization",
+  "name": "Spelling Nest",
+  "url": "https://spellingnest.co.uk/",
+  "email": "info@spellingnest.co.uk",
+  "logo": "https://spellingnest.co.uk/assets/social.png",
+  "description": "Spelling Nest is made in the United Kingdom by one person, a parent who is also a qualified teacher. It carries no adverts and no third party tracking.",
+  "areaServed": { "@type": "Country", "name": "United Kingdom" },
+  "sameAs": [
+    "https://www.facebook.com/spellingnest",
+    "https://www.instagram.com/spellingnest/"
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -275,9 +437,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     <nav class="links" aria-label="Main">
       <a href="#how">How it works</a>
       <a href="#practice">Ways to practise</a>
-      <a href="#price">What it costs</a>
+      <a href="/look-cover-write-check/">The method</a>
       <a href="#grownups">For grown ups</a>
-      <a href="#faq">Questions</a>
+      <a href="/faq/">Questions</a>
     </nav>
     <a class="btn small" href="/app">Open the app</a>
   </div>
@@ -291,7 +453,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     <div>
       <p class="eyebrow">For children aged 5 to 11</p>
       <h1>This week's spellings, practised in ten minutes a day.</h1>
-      <p class="lead">Type in the list that came home from school, then hand over the tablet. Spelling Nest turns it into a short game your child plays on any phone, tablet or laptop, and tells you what has stuck before the test rather than after it.</p>
+      <p class="lead">Type in the list that came home from school. Spelling Nest turns it into a short game your child plays on any phone, tablet or laptop, and tells you what has actually stuck.</p>
       <div class="cta-row">
         <a class="btn pink" href="/app">Open Spelling Nest</a>
         <a class="btn ghost" href="#how">See how it works</a>
@@ -299,7 +461,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       <div class="reassure">
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-          Fourteen days free
+          14 day free trial
         </span>
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
@@ -323,9 +485,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     <div class="head center">
       <p class="eyebrow">Why it works</p>
       <h2>Not a spelling test. A week of small, useful practice.</h2>
-      <p class="lead">Most spelling lists get a quick read the night before and a test a few days later. Spelling Nest spreads the same list across the whole week and keeps score of the only thing that matters: which words your child can now spell without help.</p>
+      <p class="lead">Spelling Nest takes the spelling list your child brings home from school and turns it into a short daily game, for primary school children aged 5 to 11. Most spelling lists get a quick read on Sunday evening and a test on Friday. Spelling Nest spreads the same list across the week and keeps score of the only thing that matters: which words your child can now spell without help.</p>
     </div>
-    <div class="grid g4">
+    <div class="grid g3">
       <div class="card">
         <div class="icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>
@@ -346,13 +508,6 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
         </div>
         <h3>Help arrives before the tears do</h3>
         <p>If your child is stuck, Kit the owl replays the word slowly with each letter group lighting up, then offers the first letter, then the number of letters and the tricky part. Nobody sits there defeated.</p>
-      </div>
-      <div class="card">
-        <div class="icon navyish">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V6a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 1.5z"/><path d="M20 19.5V6a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 1.5z"/></svg>
-        </div>
-        <h3>Alongside the writing, not instead of it</h3>
-        <p>Spelling Nest does not replace the exercise book, and it is not meant to. It is the same look, cover, write, check your child's school uses, with enough pull that the practice actually happens. Keep writing the words out by hand as well.</p>
       </div>
     </div>
   </div>
@@ -398,7 +553,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       <div>
         <span class="num">3</span>
         <h3>You see what has stuck</h3>
-        <p>Every lesson ends with a scorecard: how many words were right first time, which ones need more work, and any words newly mastered. Progress keeps the week's streak, total XP and a word by word view, so the night before the test is an informed conversation rather than a guess.</p>
+        <p>Every lesson ends with a scorecard: how many words were right first time, which ones need more work, and any words newly mastered. Progress keeps the week's streak, total XP and a word by word view, so Thursday evening is an informed conversation rather than a guess.</p>
         <ul>
           <li>Practise the tricky words in one tap</li>
           <li>Recent lessons kept with stars and scores</li>
@@ -416,7 +571,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     <div class="head center">
       <p class="eyebrow">Ways to practise</p>
       <h2>Four ways to meet the same word.</h2>
-      <p class="lead">Questions are mixed at random through the lesson, so the same ten words never feel like the same ten questions.</p>
+      <p class="lead">Spelling Nest asks four kinds of question: unjumble, missing letters, look, cover, write, check, and listen and spell. Questions are mixed at random through the lesson, so the same ten words never feel like the same ten questions. <a href="/how-spelling-sticks/">Why four kinds rather than ten repetitions</a>.</p>
     </div>
     <div class="act">
       <div class="card">
@@ -439,36 +594,6 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
         <h3>Listen and spell</h3>
         <p>Nothing on screen but the tiles. This is the one that decides whether a word is mastered.</p>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- WHAT IT COSTS -->
-<section id="price">
-  <div class="wrap">
-    <div class="head center">
-      <p class="eyebrow">What it costs</p>
-      <div class="goldrule"></div>
-      <h2>Fourteen days free, then less than a coffee a month.</h2>
-      <p class="lead">One price for your whole family, however many children you add. Your card is taken when you start so that practice carries on without interruption, and nothing is charged for fourteen days. Cancel before then and you pay nothing at all.</p>
-    </div>
-    <div class="plans">
-      <div class="plan">
-        <h3>Monthly</h3>
-        <p class="amount">£3<span> a month</span></p>
-        <p class="small">Cancel any time, in no more steps than it took to subscribe.</p>
-      </div>
-      <div class="plan">
-        <h3>Yearly</h3>
-        <p class="amount">£20<span> a year</span></p>
-        <p><span class="saving">Save £16</span></p>
-        <p class="small">That is twelve months for the price of about seven.</p>
-      </div>
-    </div>
-    <div class="reassure" style="justify-content:center;margin-top:24px">
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every child in your family</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>No adverts, no tracking</span>
-      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Nothing is ever deleted if you stop</span>
     </div>
   </div>
 </section>
@@ -526,7 +651,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       </div>
       <div class="card">
         <h3>What we do collect</h3>
-        <p>Your email address for the sign in code, your child's first name or nickname and school year, the word lists you add, and lesson results shown as XP, streaks and mastered words. We also count anonymous usage events so we can see which parts of the app are used. <a href="privacy.html">Read the privacy notice</a>.</p>
+        <p>Your email address for the sign in link, your child's first name or nickname and school year, the word lists you add, and lesson results shown as XP, streaks and mastered words. We also count anonymous usage events so we can see which parts of the app are used. <a href="privacy.html">Read the privacy notice</a>.</p>
       </div>
     </div>
   </div>
@@ -578,13 +703,11 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
       </details>
       <details>
         <summary>How do I sign in?</summary>
-        <p>With your email address. We email you a code to type in, so there is no password to remember or reset. Your child never needs an email address of their own.</p>
+        <p>With your email address. We send you a link that signs you in, so there is no password to remember or reset. Your child never needs an email address of their own.</p>
       </details>
       <details>
         <summary>What does it cost?</summary>
-        <p>Fourteen days free, then £3 a month or £20 for the year, which saves you £16. That covers every child in your family, not one child each.</p>
-        <p>Your card details are taken when you start, and nothing is charged for fourteen days. We email you before the first payment is due. Cancel at any point in those fourteen days and you pay nothing.</p>
-        <p>If you cancel later, practice carries on to the end of the period you have paid for. After that your word lists and progress stay exactly where they are and the lessons stop. Nothing is ever deleted.</p>
+        <p>£3 a month, or £20 for the year, which saves you £16. One subscription covers every child in your family, not one child each. New families start with a 14 day free trial, and the first payment is taken at the end of it.</p>
       </details>
       <details>
         <summary>How do I delete our data?</summary>
@@ -597,17 +720,17 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
 <!-- FINAL CTA -->
 <section class="final">
   <div class="wrap">
-    <h2>Give test day a calmer feel.</h2>
-    <p class="lead">Add this week's list, hand over the tablet, and see what has stuck before the test rather than after it. Fourteen days free, then £3 a month or £20 for the year.</p>
+    <h2>Give Friday morning a calmer feel.</h2>
+    <p class="lead">Add this week's list, hand over the tablet, and see what has stuck before the test rather than after it.</p>
     <div class="cta-row"><a class="btn pink" href="/app">Open Spelling Nest</a></div>
     <div class="reassure">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-        Fourteen days free
+        14 day free trial
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-        Cancel any time
+        Sign in by email link
       </span>
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
@@ -634,7 +757,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
           </svg>
           Spelling Nest
         </a>
-        <p>Weekly school spellings, practised in ten minutes a day. Made in the United Kingdom by a parent who got tired of cramming spellings the night before.</p>
+        <p>Weekly school spellings, practised in ten minutes a day. Made in the United Kingdom by a parent who got tired of Thursday night cramming.</p>
       </div>
       <div>
         <h4>Spelling Nest</h4>
@@ -642,7 +765,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
           <li><a href="/app">Open the app</a></li>
           <li><a href="#how">How it works</a></li>
           <li><a href="#practice">Ways to practise</a></li>
-          <li><a href="#faq">Questions</a></li>
+          <li><a href="/look-cover-write-check/">Look, cover, write, check</a></li>
+          <li><a href="/how-spelling-sticks/">Why four ways</a></li>
+          <li><a href="/faq/">Questions</a></li>
         </ul>
       </div>
       <div>
@@ -650,13 +775,10 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
         <ul>
           <li><a href="mailto:info@spellingnest.co.uk">info@spellingnest.co.uk</a></li>
           <li><a href="privacy.html">Privacy notice</a></li>
-          <li><a href="terms.html">Terms of sale</a></li>
-          <li><a href="https://www.facebook.com/spellingnest" target="_blank" rel="noopener noreferrer me">Facebook</a></li>
-          <li><a href="https://www.instagram.com/spellingnest/" target="_blank" rel="noopener noreferrer me">Instagram</a></li>
         </ul>
       </div>
     </div>
-    <p class="legal">© 2026 Stuart Coussins, trading as K&amp;S Designs. Spelling Nest and Kit the owl are ours; Kit was drawn for this app and is not used anywhere else.<br><a href="terms.html">Terms of sale</a> · <a href="privacy.html">Privacy notice</a> · <a href="mailto:info@spellingnest.co.uk">info@spellingnest.co.uk</a></p>
+    <p class="legal">© 2026 Spelling Nest. Made in the United Kingdom. Kit the owl is an original character drawn for this app.</p>
   </div>
 </footer>
 

@@ -1,0 +1,9 @@
+# spellingnest.co.uk
+
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /app/
+Disallow: /admin.html
+
+Sitemap: https://spellingnest.co.uk/sitemap.xml
