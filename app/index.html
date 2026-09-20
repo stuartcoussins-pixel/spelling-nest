@@ -215,7 +215,7 @@ textarea{min-height:96px;resize:vertical}
 .tile:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 var(--tile-edge), 0 0 0 1.5px var(--line)}
 .tile:disabled{background:var(--slot);box-shadow:none;color:transparent;cursor:default}
 .free-placeholder{color:var(--ink-soft);align-self:center;font-size:1rem;border:2px dashed var(--line);border-radius:14px;padding:14px 18px}
-.free-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.free-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}
 .bigword{font-family:Andika,Outfit,sans-serif;font-size:clamp(2.6rem,12vw,4.2rem);font-weight:700;text-align:center;letter-spacing:.02em;line-height:1.2;white-space:nowrap}
 .bigword .word{display:inline-block;max-width:100%}
 .word .chunk{border-radius:10px;padding:0 1px;transition:background .15s,color .15s}
@@ -354,7 +354,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.10';
+const APP_VERSION='1.11';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
