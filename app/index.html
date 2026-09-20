@@ -196,8 +196,14 @@ textarea{min-height:96px;resize:vertical}
 .prompt h2{font-size:1.35rem;font-weight:800}
 .prompt p{margin:2px 0 0;color:var(--ink-soft)}
 .lbody{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding-block:10px}
-.slots,.pool{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
-.slots{--n:6;min-height:calc(var(--tile-size) * 1.15)}
+.pool{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+/* 20 September 2026. The answer used to wrap, so a thirteen letter word arrived on the
+   child's screen in three rows and stopped looking like a word at all. It now stays on
+   one line and shrinks its own letters to fit. The letters you TAP keep their size,
+   because those are the things a small finger has to hit, and they are sized from the
+   pool alone rather than from the length of the word. */
+.slots{display:flex;flex-wrap:nowrap;justify-content:center;align-items:flex-end;gap:var(--slot-gap,7px);min-height:calc(var(--tile-size) * 1.15);max-width:100%}
+.slots .slot{flex:0 0 auto;width:var(--slot-size,var(--tile-size));height:calc(var(--slot-size,var(--tile-size)) * 1.15);font-size:calc(var(--slot-size,var(--tile-size)) * .58);border-radius:clamp(8px,calc(var(--slot-size,var(--tile-size)) * .27),14px)}
 .pool{padding-top:6px}
 .slot,.tile{width:var(--tile-size);height:calc(var(--tile-size) * 1.15);border-radius:14px;display:grid;place-items:center;font-family:Andika,Outfit,sans-serif;font-weight:700;font-size:calc(var(--tile-size) * .58);line-height:1;border:0;padding:0}
 .slot{background:var(--slot);box-shadow:inset 0 3px 0 rgba(2,33,64,.07)}
@@ -209,12 +215,13 @@ textarea{min-height:96px;resize:vertical}
 .tile:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 var(--tile-edge), 0 0 0 1.5px var(--line)}
 .tile:disabled{background:var(--slot);box-shadow:none;color:transparent;cursor:default}
 .free-placeholder{color:var(--ink-soft);align-self:center;font-size:1rem;border:2px dashed var(--line);border-radius:14px;padding:14px 18px}
-.free-tools{display:flex;justify-content:center}
-.bigword{font-family:Andika,Outfit,sans-serif;font-size:clamp(2.6rem,12vw,4.2rem);font-weight:700;text-align:center;letter-spacing:.02em;line-height:1.2}
+.free-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.bigword{font-family:Andika,Outfit,sans-serif;font-size:clamp(2.6rem,12vw,4.2rem);font-weight:700;text-align:center;letter-spacing:.02em;line-height:1.2;white-space:nowrap}
+.bigword .word{display:inline-block;max-width:100%}
 .word .chunk{border-radius:10px;padding:0 1px;transition:background .15s,color .15s}
 .word .chunk+.chunk{margin-left:2px}
 .word .chunk.lit{background:var(--pink);color:var(--navy)}
-.word.sm{font-family:Andika,Outfit,sans-serif;font-size:1.9rem;font-weight:700}
+.word.sm{font-family:Andika,Outfit,sans-serif;font-size:1.9rem;font-weight:700;white-space:nowrap}
 .steps{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
 .steps span{font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft)}
 .steps span.on{background:var(--navy);color:#fff}
@@ -347,7 +354,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.8';
+const APP_VERSION='1.10';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -373,6 +380,8 @@ const countdownText=ds=>{const n=daysUntil(ds);if(n===null)return '';if(n>1)retu
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const ICON={
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5 4 10l5 5"/><path d="M4 10h9a6 6 0 0 1 0 12h-1.5"/></svg>',
+  clear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M9.2 9.2l5.6 5.6M14.8 9.2l-5.6 5.6"/></svg>',
   flame:'<svg viewBox="0 0 24 24"><path fill="#F29A38" d="M12 2c1 3.5 5.5 6 5.5 11A5.5 5.5 0 0 1 12 18.5 5.5 5.5 0 0 1 6.5 13c0-2.6 1.4-4.2 2.6-5.5.3 1.6 1 2.6 2 3C11 7.6 11.4 4.6 12 2z"/><path fill="#FBD35B" d="M12 11c.6 1.8 2.8 2.9 2.8 5.2A2.8 2.8 0 0 1 12 19a2.8 2.8 0 0 1-2.8-2.8c0-1.6 1.2-2.6 2-3.4.1.7.4 1.1.8 1.3-.2-1.2-.2-2.2 0-3.1z"/></svg>',
   bolt:'<svg viewBox="0 0 24 24"><path fill="#E8A92E" d="M13.5 2 4 13.5h6.2L9 22l10-12h-6.3z"/></svg>',
   heart:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-8-5.2-8-11.2A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.8C20 15.8 12 21 12 21z"/></svg>',
@@ -462,6 +471,22 @@ async function startCheckout(plan){
   }catch(e){ subMsg='We could not open the payment page. Please try again in a moment.' }
   subBusy=false; renderView();
 }
+// Changing their mind. A parent who has cancelled and wants to carry on gets the
+// subscription they already have back, rather than a second one alongside it. See
+// supabase/functions/resume-subscription for why that distinction matters.
+async function resumeSubscription(){
+  if(subBusy) return; subBusy=true; subMsg=''; renderView();
+  try{
+    const j=await fnCall('resume-subscription',{});
+    if(j&&j.ok){
+      await loadSubscription();
+      toast(j.already_active?'Your subscription is running.':'Your subscription is back on.');
+      subBusy=false; renderView(); return;
+    }
+    subMsg=(j&&j.error)||'We could not restart your subscription just now. Please try again in a moment.';
+  }catch(e){ subMsg='We could not restart your subscription just now. Please try again in a moment.' }
+  subBusy=false; renderView();
+}
 async function openPortal(){
   if(subBusy) return; subBusy=true; subMsg=''; renderView();
   try{
@@ -501,6 +526,7 @@ function subCard(){
     <p class="note" style="margin:0">Your family joined while Spelling Nest was in beta, so your first year is on us. Thank you for helping us test it.${sub.freeUntil?` Your free year runs until <b>${esc(prettyDate(dpart(sub.freeUntil)))}</b>, and we will tell you well before then.`:''}</p>
     <p class="note" style="margin:0">There is nothing to pay and nothing to set up. You do not need to do anything today.</p></section>`;
   const manage=(sub.status&&sub.status!=='none')?`<button class="ghost small" data-act="sub-manage" ${subBusy?'disabled':''}>Manage subscription</button>`:'';
+  const resume=`<button class="small" data-act="sub-resume" ${subBusy?'disabled':''}>Keep my subscription</button>`;
   if(sub.reason==='paid'||sub.reason==='paid_until_period_end'){
     const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
     const stopping=sub.reason!=='paid'||sub.cancelling;
@@ -508,14 +534,16 @@ function subCard(){
     const line=!stopping
       ?(ends?`Your subscription renews on ${esc(ends)}.`:'Your subscription is active.')
       :(ends?`You have cancelled, so there is nothing more to pay. Practice carries on until <b>${esc(ends)}</b>, and after that the app stays open to look at.`:'You have cancelled. There is nothing more to pay.');
-    return `<section class="card stack">${head(title)}<p class="note" style="margin:0">${line}</p>
-      <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
+    const back=stopping?`<p class="note" style="margin:0">Changed your mind? Keeping it carries straight on from where you are, with the same renewal date and nothing new to set up.</p>`:'';
+    return `<section class="card stack">${head(title)}<p class="note" style="margin:0">${line}</p>${back}
+      <div class="row">${stopping?resume:''}${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
   }
   if(sub.reason==='in_trial'&&sub.status==='trialling'){
     const n=daysLeft(sub.trialEnds); const ends=sub.trialEnds?prettyDate(dpart(sub.trialEnds)):'';
     if(sub.cancelling) return `<section class="card stack">${head('Cancelled'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
       <p class="note" style="margin:0"><b>You have cancelled and nothing will be charged.</b> ${ends?`Your free trial carries on until <b>${esc(ends)}</b>. `:''}After that everything your family has done stays here to look at, and lessons pause until you subscribe again.</p>
-      <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
+      <p class="note" style="margin:0">Changed your mind? Keeping it puts you back on the same free trial, ending on the same date. Nothing is charged before then.</p>
+      <div class="row">${resume}${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
     return `<section class="card stack">${head('Free trial'+(n!==null?`, ${n} day${n===1?'':'s'} left`:''))}
       <p class="note" style="margin:0">${ends?`Your first payment is due on <b>${esc(ends)}</b>. `:''}We will email you before then. Cancel any time before that date and you will not be charged.</p>
       <div class="row">${manage}</div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
@@ -696,7 +724,20 @@ const GRAPH=['tch','dge','igh','air','ear','ure','ore','eer','ch','sh','th','ph'
 const ENDINGS=['ge','ce','le','ve','se','ze'];
 function chunks(w){const out=[];let i=0;while(i<w.length){let m=null;for(const e of ENDINGS){if(i>0&&i+e.length===w.length&&w.startsWith(e,i)){m=e;break}}if(!m)for(const g of GRAPH){if(w.startsWith(g,i)){if(/^(ar|or|ur|er|ir|ow|ew|aw)$/.test(g)&&/[aeiour]/.test(w[i+2]||''))continue;m=g;break}}if(!m)m=w[i];out.push(m);i+=m.length}return out}
 function tricky(w){const cs=chunks(w);let pos=0;for(let k=0;k<cs.length;k++){if(cs[k].length>1){const where=k===0?'at the start':k===cs.length-1?'at the end':'in the middle';return {c:cs[k],where}}pos+=cs[k].length}return null}
-const chunkHTML=(w,cls='')=>`<span class="word ${cls}" data-say-target>${chunks(w).map(c=>`<span class="chunk">${esc(c)}</span>`).join('')}</span>`;
+/* 20 September 2026: a word is shown at one size until it is long enough to wrap, and
+   then shrinks instead. Eleven characters is where the largest size stops fitting a
+   narrow phone; past that the size falls in proportion, with a floor low enough to keep
+   even a very long word on a single line. Kept in one place so the reveal, the look card
+   and the check card all behave the same way. */
+const wordScale=(w,base,min,fit)=>{const n=(w||'').length;return (n<=fit?base:Math.max(min,base*fit/n)).toFixed(2)+'rem'};
+const chunkHTML=(w,cls='')=>{
+  /* The small reveal takes a plain size. The big word keeps its responsive size for short
+     words and is capped for long ones, so it shrinks on a narrow phone rather than wrapping. */
+  const style=cls.includes('sm')
+    ? `font-size:${wordScale(w,1.9,0.95,11)}`
+    : `font-size:min(clamp(2.6rem,12vw,4.2rem), ${wordScale(w,4.2,1.5,9)})`;
+  return `<span class="word ${cls}" data-say-target style="${style}">${chunks(w).map(c=>`<span class="chunk">${esc(c)}</span>`).join('')}</span>`;
+};
 let voice=null;
 function pickVoice(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en[-_]GB/i.test(v.lang)&&/female|libby|sonia|serena|kate|hazel|susan|martha/i.test(v.name))||vs.find(v=>/en[-_]GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
@@ -1180,6 +1221,7 @@ $('#view').addEventListener('click',e=>{
     case 'sub-annual': startCheckout('annual'); break;
     case 'sub-monthly': startCheckout('monthly'); break;
     case 'sub-manage': openPortal(); break;
+    case 'sub-resume': resumeSubscription(); break;
     case 'fb-idea': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='idea'; fbMsg=''; renderView(); break}
     case 'fb-problem': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='problem'; fbMsg=''; renderView(); break}
     case 'fb-send': sendFeedback(); break;
@@ -1265,21 +1307,47 @@ function Board(host,{pool,length,fixed,free}){
   const used=pool.map(()=>false); let isFree=!!free;
   let slots=isFree?[]:Array.from({length},(_,i)=>fixed&&fixed[i]?{fixed:fixed[i]}:null);
   let locked=false,result=null;
-  const setSize=()=>{const n=Math.max(isFree?Math.max(slots.length,pool.length>7?7:pool.length):slots.length,Math.min(pool.length,7));const w=Math.min(host.clientWidth||340,560);host.style.setProperty('--tile-size',Math.max(34,Math.min(58,Math.floor((w-(n-1)*7)/n)))+'px')};
+  const setSize=()=>{
+    const w=Math.min(host.clientWidth||340,560);
+    /* The letters to tap. Sized from the pool alone, seven across at most, so a long word
+       never shrinks the thing a five year old has to press. */
+    const perRow=Math.min(Math.max(pool.length,1),7);
+    host.style.setProperty('--tile-size',Math.max(34,Math.min(58,Math.floor((w-(perRow-1)*7)/perRow)))+'px');
+    /* The answer. One line, always. The gap closes up before the letters do, and the floor
+       is low enough that even an unusually long word fits rather than wrapping. */
+    const n=Math.max(isFree?slots.length:slots.length,1);
+    const gap=n>14?2:(n>10?4:7);
+    host.style.setProperty('--slot-gap',gap+'px');
+    host.style.setProperty('--slot-size',Math.max(14,Math.min(58,Math.floor((w-(n-1)*gap)/n)))+'px');
+  };
   const cls=i=>{if(result==null)return'';const s=slots[i];if(!s||s.fixed)return'';return (s&&pool[s.t]===result[i])?'right':'wrong'};
   function render(){
     setSize();
     const slotHTML=(s,i)=>s==null?`<span class="slot" role="img" aria-label="empty space"></span>`:s.fixed?`<span class="slot fixed">${esc(s.fixed)}</span>`:`<button class="slot filled ${cls(i)}" data-s="${i}" ${locked?'disabled':''} aria-label="${esc(pool[s.t])}, tap to remove">${esc(pool[s.t])}</button>`;
     host.innerHTML=`<div class="slots">${isFree&&!slots.length?'<span class="free-placeholder">Tap the letters to spell the word</span>':slots.map(slotHTML).join('')}</div>
     <div class="pool" style="max-width:${Math.ceil(pool.length/Math.ceil(pool.length/7))*(parseInt(host.style.getPropertyValue('--tile-size'))+7)}px;margin-inline:auto">${pool.map((ch,i)=>`<button class="tile" data-t="${i}" ${used[i]||locked?'disabled':''} aria-label="letter ${esc(ch)}">${used[i]?'':esc(ch)}</button>`).join('')}</div>
-    ${isFree&&!locked?`<div class="free-tools"><button class="ghost small" data-undo ${slots.length?'':'disabled'}>Undo last letter</button></div>`:''}`;
+    ${tools()}`;
+  }
+  /* Undo takes the last letter back; clear empties the whole answer in one press. Added
+     20 September 2026: until now a child who wanted to start again had to tap every letter
+     out one at a time, and a parent watching that is the parent who closes the app. Any
+     letters the question gives for free are left alone by both. */
+  function tools(){
+    if(locked) return '';
+    const placed=slots.some(s=>s&&!s.fixed);
+    if(!isFree&&!placed) return '';
+    return `<div class="free-tools">
+      ${isFree?`<button class="ghost small" data-undo ${slots.length?'':'disabled'} aria-label="Undo the last letter">${ICON.undo}Undo</button>`:''}
+      <button class="ghost small" data-clear ${placed?'':'disabled'} aria-label="Clear the whole answer">${ICON.clear}Clear</button>
+    </div>`;
   }
   host.addEventListener('click',e=>{
     if(locked)return;
-    const t=e.target.closest('[data-t]'),s=e.target.closest('[data-s]'),u=e.target.closest('[data-undo]');
+    const t=e.target.closest('[data-t]'),s=e.target.closest('[data-s]'),u=e.target.closest('[data-undo]'),c=e.target.closest('[data-clear]');
     if(t){const i=+t.dataset.t;if(used[i])return;if(isFree){slots.push({t:i})}else{const k=slots.findIndex(x=>x===null);if(k<0)return;slots[k]={t:i}}used[i]=true;sfx.tap()}
     else if(s){const k=+s.dataset.s;const v=slots[k];if(!v||v.fixed)return;used[v.t]=false;if(isFree)slots.splice(k,1);else slots[k]=null}
     else if(u){const v=slots.pop();if(v)used[v.t]=false}
+    else if(c){for(const v of slots){if(v&&!v.fixed)used[v.t]=false}slots=isFree?[]:slots.map(s=>(s&&s.fixed)?s:null);sfx.tap()}
     else return;
     render();updateCheck();
   });
