@@ -617,5 +617,25 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
   </div>
 </footer>
 
+<script>
+// Campaign links arrive as spellingnest.co.uk/?ref=ig_s_d01. Carry that one value, and
+// nothing else, onto every link into the app, so the app can record where the visit came
+// from. It is read from this page's own address each time the page loads: nothing is
+// stored, so no cookie, no local storage and no change to the privacy notice.
+(function(){
+  try{
+    var ref = new URLSearchParams(location.search).get('ref');
+    if (!ref) return;
+    var links = document.querySelectorAll('a[href]');
+    for (var i = 0; i < links.length; i++) {
+      var u = new URL(links[i].getAttribute('href'), location.href);
+      if (u.origin !== location.origin) continue;
+      if (u.pathname !== '/app' && u.pathname !== '/app/') continue;
+      u.searchParams.set('ref', ref);
+      links[i].setAttribute('href', u.pathname + u.search + u.hash);
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
