@@ -354,7 +354,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.11';
+const APP_VERSION='1.12';
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -1354,7 +1354,11 @@ function Board(host,{pool,length,fixed,free}){
   render();
   return {
     value:()=>slots.map(s=>s?(s.fixed||pool[s.t]):'').join(''),
-    full:()=>isFree?slots.length>0:slots.every(s=>s!==null),
+    /* Ready to check as soon as the child has placed one letter of their own. Until 1.12 a
+       fixed length board needed every box filled, so a child who spelled a word with a letter
+       missing could not check it at all: the button just stayed grey. Empty boxes now count
+       as wrong, and the child sees the right spelling like any other wrong answer. */
+    full:()=>slots.some(s=>s&&!s.fixed),
     toSlots(L){if(!isFree)return;const keep=slots.slice(0,L);slots.slice(L).forEach(v=>used[v.t]=false);isFree=false;slots=Array.from({length:L},(_,i)=>keep[i]||null);render();updateCheck()},
     lock(correct){locked=true;result=correct;if(isFree){/* compare by position */}render()}
   };
