@@ -74,6 +74,8 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
 .pill svg{width:18px;height:18px}
 
 /* tab bar */
+.vermark{position:fixed;right:8px;bottom:calc(2px + env(safe-area-inset-bottom,0px));z-index:6;font:600 10px/1.2 Outfit,system-ui,sans-serif;letter-spacing:.04em;color:var(--ink-soft);opacity:.55;pointer-events:none;user-select:none;font-variant-numeric:tabular-nums}
+@media print{.vermark{display:none}}
 .tabbar{position:fixed;left:0;right:0;bottom:0;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ground) 70%,transparent);z-index:5}
 .tabbar-inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface);border-radius:22px;padding:6px;box-shadow:var(--shadow)}
 .tab{background:none;border:0;border-radius:16px;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.78rem;font-weight:600;color:var(--ink-soft)}
@@ -335,6 +337,7 @@ a{color:inherit}
   </header>
   <main id="view" class="stack"></main>
 </div>
+<div class="vermark" id="vermark" aria-hidden="true"></div>
 <nav class="tabbar" aria-label="Sections">
   <div class="tabbar-inner" id="tabs"></div>
 </nav>
@@ -354,7 +357,11 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.13';
+const APP_VERSION='1.14';
+/* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
+   parent always says which build it came from. Set from APP_VERSION, never typed twice. (1.14) */
+const APP_BUILD_LABEL='v'+APP_VERSION;
+document.addEventListener('DOMContentLoaded',()=>{const m=document.getElementById('vermark');if(m)m.textContent=APP_BUILD_LABEL});
 
 /* ---------- usage analytics (aggregate reporting only, see ANALYTICS_FRAMEWORK.md) ---------- */
 
@@ -1134,6 +1141,10 @@ async function createProfile(){
     track('speller_created',{school_year:p.year||'none',profile_count:S.account.profiles.length},p.id);
     track('list_created',{word_count:words.length,source:own?'signup':'example',has_test_date:!!tdate},p.id);
     await run(sb.from('speller_progress').insert(progressRow(p.id)),'progress');
+    /* 1.14: a family that has never subscribed meets the plan screen straight after their first
+       child is set up. Until 1.14 they landed on a locked home screen and only saw it on their
+       next visit. */
+    if(sub.loaded&&sub.reason==='never_subscribed'&&!subDeclined){S.pid=null;afterAccount();return}
     selectProfile(p.id,true);
   }catch(e){ ob.step='done'; view='onboard'; renderChrome(); renderView(); }
 }
