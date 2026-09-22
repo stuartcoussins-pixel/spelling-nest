@@ -357,7 +357,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.14';
+const APP_VERSION='1.15';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent always says which build it came from. Set from APP_VERSION, never typed twice. (1.14) */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -370,6 +370,23 @@ let anonId=null, sessionId=null, evQueue=[];
 function platformKind(){try{const w=Math.min(screen.width,screen.height);if(w<=520)return 'mobile';if(w<=1024)return 'tablet';return 'desktop'}catch(e){return 'unknown'}}
 function getAnonId(){if(anonId)return anonId;try{anonId=localStorage.getItem(ANON_KEY);if(!anonId){anonId=uuid();localStorage.setItem(ANON_KEY,anonId)}}catch(e){anonId=anonId||uuid()}return anonId}
 function refHost(){try{return document.referrer?new URL(document.referrer).hostname.slice(0,60):''}catch(e){return ''}}
+/* 1.15: a school spelling sheet's QR code opens /app/?w=word,word&t=title&d=yyyy-mm-dd&ref=sheet.
+   The words are held here in memory only, and the w, t and d parts are taken off the address
+   straight away so a reload or a shared link does not bring them back. Nothing is saved until a
+   grown up chooses the child and saves the list behind the Grown ups PIN. ref stays, so the
+   visit is still counted as coming from a sheet. */
+let sheetImport=null;
+(function readSheetLink(){
+  try{
+    const q=new URLSearchParams(location.search); const w=q.get('w'); if(!w) return;
+    const words=normaliseWords(w).slice(0,40);
+    const t=(q.get('t')||'').replace(/\s+/g,' ').trim().slice(0,80);
+    const d=/^\d{4}-\d{2}-\d{2}$/.test(q.get('d')||'')?q.get('d'):'';
+    if(words.length) sheetImport={words,title:t,date:d};
+    ['w','t','d'].forEach(k=>q.delete(k));
+    const rest=q.toString(); history.replaceState(null,'',location.pathname+(rest?'?'+rest:'')+location.hash);
+  }catch(e){}
+})();
 function refParam(){try{return (new URLSearchParams(location.search).get('ref')||'').slice(0,40)}catch(e){return ''}}
 function track(name,props,spellerId){
   try{
@@ -671,6 +688,7 @@ async function giveConsent(){
 function afterAccount(){
   const profs=S.account.profiles;
   if(!profs.length){startOnboarding();return}
+  if(sheetImport){view='sheet';renderChrome();renderView();return}
   // Card up front: a family that has never subscribed is asked once, after their
   // first child is set up, before any lesson is reachable. They can decline and
   // look around; the app is read only until they subscribe.
@@ -813,7 +831,8 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTi
 /* ---------- views ---------- */
 function renderView(){
   const v=$('#view');
-  if(view==='signin') v.innerHTML=signinView();
+  if(view==='sheet') v.innerHTML=sheetView();
+  else if(view==='signin') v.innerHTML=signinView();
   else if(view==='consent') v.innerHTML=consentView();
   else if(view==='offline') v.innerHTML=`<div class="splash">${owl('sleepy')}<h2 style="font-size:1.3rem">Spelling Nest could not load</h2><p class="muted" style="margin:0;max-width:36ch">Check your internet connection, then refresh the page.</p><button class="btn" data-act="reload">Try again</button></div>`;
   else if(view==='loaderror') v.innerHTML=`<div class="splash">${owl('sleepy')}<h2 style="font-size:1.3rem">We could not load your family's data</h2><p class="muted" style="margin:0;max-width:40ch">${esc(syncMsg||'Check your internet connection and try again.')}</p><button class="btn" data-act="reload">Try again</button></div>`;
@@ -844,7 +863,7 @@ async function sendFeedback(){
 function signinView(){
   const terms=`<p class="note">By signing in you agree to our <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a> and <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</p>`;
   const err=`<p class="err" id="si-err" role="alert" style="text-align:left">${esc(authMsg)}</p>`;
-  const head=`<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">Weekly spelling practice for primary school children, with Kit the owl.</p>`;
+  const head=`<div class="onboard">${owl('cheer')}<h1>Spelling Nest</h1><p class="lead">${sheetImport?`You scanned a spelling sheet with ${sheetImport.words.length} ${sheetImport.words.length===1?'word':'words'} on it. Sign in, or set up your family, and they will be ready to practise.`:'Weekly spelling practice for primary school children, with Kit the owl.'}</p>`;
   if(authStage==='code'){
     return `${head}
   <section class="card stack"><div><h2 style="font-size:1.2rem">Check your email</h2><p class="note" style="margin-top:4px">We sent a sign in code to <b>${esc(authEmail)}</b>. Type it in below. It can take a minute to arrive, so check your junk folder too.</p></div>
@@ -873,6 +892,26 @@ function subscribeView(){
   </section>
   <button class="ghost" data-act="sub-later" style="justify-content:center">Not now, show me the app</button></div>`;
 }
+function sheetView(){
+  const imp=sheetImport||{words:[]}; const profs=S.account.profiles;
+  return `<div class="onboard">${owl('cheer')}<h1>Words from school</h1>
+  <p class="lead">${imp.title?`<b>${esc(imp.title)}</b>. `:''}${imp.words.length} ${imp.words.length===1?'word':'words'}${imp.date?`, test on ${esc(prettyDate(imp.date))}`:''}.</p>
+  <section class="card stack"><div class="words">${imp.words.map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div></section>
+  <section class="card stack"><h2 style="font-size:1.2rem">${profs.length>1?'Who are these words for?':'Add these words for '+esc(profs[0].name)+'?'}</h2>
+  <p class="note" style="margin:0">A grown up checks and saves them in Grown ups. Nothing is saved until then.</p>
+  ${profs.map(p=>`<button class="btn block" data-act="sheet-for" data-pid="${esc(p.id)}">${profs.length>1?esc(p.name):'Add them for '+esc(p.name)}</button>`).join('')}</section>
+  <button class="ghost" data-act="sheet-skip" style="justify-content:center">Not now</button></div>`;
+}
+async function takeSheet(pid){
+  const imp=sheetImport; if(!imp) return;
+  track('sheet_scanned',{words:imp.words.length,has_date:!!imp.date,outcome:'opened_in_grown_ups'},pid);
+  await selectProfile(pid);
+  sheetImport=null;
+  draft={id:null,title:(imp.title||'This week’s spellings').slice(0,80),words:imp.words.slice(),testDate:imp.date||''};
+  view='grown'; unlocked=false; changingPin=false; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; pinErr='';
+  renderChrome(); renderView(); window.scrollTo(0,0);
+  toast('The words from school are ready. Check them and save.');
+}
 function consentView(){
   return `<div class="onboard">${owl()}<h1>Before you start</h1><p class="lead">For each child you add, Spelling Nest stores a first name or nickname, school year, word lists and spelling progress. There are no adverts and we never share this information.</p>
   <section class="card stack"><label class="consent" for="consent-box"><input type="checkbox" id="consent-box" ${consentTicked?'checked':''}><span>I am the parent or carer, and I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a> and the <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>
@@ -881,6 +920,7 @@ function consentView(){
 }
 function startOnboarding(adding){
   ob={step:'welcome',name:'',year:null,pin1:'',adding:!!adding,words:[],testDate:'',wordErr:''}; pinEntry=''; pinErr='';
+  if(sheetImport&&!adding){ob.words=sheetImport.words.slice();ob.testDate=sheetImport.date||'';track('sheet_scanned',{words:ob.words.length,has_date:!!ob.testDate,outcome:'first_setup'});sheetImport=null}
   view='onboard'; renderChrome(); renderView(); window.scrollTo(0,0);
 }
 function obSteps(){const s=['welcome','name','year'];if(!S.account.pin)s.push('pin');s.push('words');s.push('done');return s}
@@ -1195,6 +1235,8 @@ $('#view').addEventListener('click',e=>{
     case 'verify-code': verifyCode(); break;
     case 'auth-back': authBack(); break;
     case 'consent-go': if(consentTicked) giveConsent(); break;
+    case 'sheet-for': takeSheet(t.dataset.pid); break;
+    case 'sheet-skip': track('sheet_scanned',{words:(sheetImport&&sheetImport.words.length)||0,outcome:'not_now'}); sheetImport=null; afterAccount(); break;
     case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
     case 'wipe': confirmWipe=true; renderView(); break;
     case 'wipeno': confirmWipe=false; renderView(); break;
