@@ -357,7 +357,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.15';
+const APP_VERSION='1.16';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent always says which build it came from. Set from APP_VERSION, never typed twice. (1.14) */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -763,8 +763,39 @@ const chunkHTML=(w,cls='')=>{
     : `font-size:min(clamp(2.6rem,12vw,4.2rem), ${wordScale(w,4.2,1.5,9)})`;
   return `<span class="word ${cls}" data-say-target style="${style}">${chunks(w).map(c=>`<span class="chunk">${esc(c)}</span>`).join('')}</span>`;
 };
-let voice=null;
-function pickVoice(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en[-_]GB/i.test(v.lang)&&/female|libby|sonia|serena|kate|hazel|susan|martha/i.test(v.name))||vs.find(v=>/en[-_]GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}
+/* Voice choice (1.16). The list of voices is whatever this device has installed, so the
+   parent's choice is kept on the device rather than in their account: a voice picked on an
+   iPhone will not exist on a school PC. If the saved voice is ever missing we fall back to
+   the automatic pick rather than going silent. */
+const VOICE_KEY='sn_voice';
+let voice=null, voiceChoice='';
+try{voiceChoice=localStorage.getItem(VOICE_KEY)||''}catch(e){voiceChoice=''}
+function englishVoices(){
+  if(!('speechSynthesis' in window))return[];
+  let vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){vs=[]}
+  const rank=v=>/en[-_]GB/i.test(v.lang)?0:1;
+  return vs.filter(v=>v&&/^en/i.test(v.lang||'')).sort((a,b)=>rank(a)-rank(b)||String(a.name).localeCompare(String(b.name)));
+}
+function autoVoice(vs){return vs.find(v=>/en[-_]GB/i.test(v.lang)&&/female|libby|sonia|serena|kate|hazel|susan|martha/i.test(v.name))||vs.find(v=>/en[-_]GB/i.test(v.lang))||vs[0]||null}
+function pickVoice(){
+  if(!('speechSynthesis' in window))return;
+  const vs=englishVoices();
+  voice=(voiceChoice&&vs.find(v=>v.name===voiceChoice))||autoVoice(vs);
+}
+function setVoiceChoice(name){
+  voiceChoice=name||'';
+  try{name?localStorage.setItem(VOICE_KEY,name):localStorage.removeItem(VOICE_KEY)}catch(e){}
+  pickVoice();
+}
+const SELCSS='style="width:100%;font:inherit;padding:11px 13px;border-radius:14px;border:1.5px solid var(--line);background:var(--ground);color:var(--ink)"';
+function voiceSelectHTML(){
+  const vs=englishVoices(), auto=autoVoice(vs);
+  if(!vs.length)return `<p class="note" id="p-voice-none">This device has not offered any voices yet. Close the app and open it again, then look here.</p>`;
+  return `<label class="lbl" for="p-voice">Which voice reads the words</label><select id="p-voice" ${SELCSS}>`
+    +`<option value="" ${voiceChoice?'':'selected'}>Choose for me${auto?' ('+esc(auto.name)+')':''}</option>`
+    +vs.map(v=>`<option value="${esc(v.name)}" ${voiceChoice===v.name?'selected':''}>${esc(v.name)}${/en[-_]GB/i.test(v.lang)?'':' \u00b7 '+esc(v.lang)}</option>`).join('')
+    +`</select>`;
+}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 let sayTimers=[];
 function lightChunks(i){document.querySelectorAll('[data-say-target]').forEach(t=>[...t.children].forEach((c,j)=>c.classList.toggle('lit',j===i)))}
@@ -1049,7 +1080,8 @@ function grownView(){
   <section class="card stack">
     <h2 style="font-size:1.25rem">Settings for everyone</h2>
     <div class="switch"><span><b>Sound effects</b><br><span class="note">Chimes for right and wrong answers</span></span><button class="toggle" role="switch" aria-checked="${!!S.account.sound}" data-act="sound" aria-label="Sound effects"></button></div>
-    <div><b>Voice</b><p class="note" style="margin:2px 0 8px">Words are read by this device's built in voice${voice?` (${esc(voice.name)})`:''}. Slow mode lights up each letter group; the sounds are not exact phonemes.</p>
+    <div class="stack"><b>Voice</b><p class="note" style="margin:2px 0 8px">Words are read by a voice built into this device. Your choice is saved on this device, so pick again on any other one you use. Slow mode lights up each letter group; the sounds are not exact phonemes.</p>
+      ${voiceSelectHTML()}
       <div class="row"><button class="ghost small" data-act="vnormal">${ICON.speaker}Test normal</button><button class="ghost small" data-act="vslow">${ICON.slow}Test slow</button><span class="word sm" data-say-target>${chunks('giraffe').map(c=>`<span class="chunk">${c}</span>`).join('')}</span></div></div>
     <div class="row"><button class="ghost small" data-act="pin-change">Change PIN</button><button class="ghost small" data-act="lock">${ICON.lock}Lock Grown ups</button></div>
   </section>
@@ -1303,6 +1335,7 @@ $('#view').addEventListener('change',async e=>{
   const p=profile();
   if(e.target.id==='p-name'&&p){const v=e.target.value.trim().slice(0,20);if(v){p.name=v;persistAccount();renderChrome()}return}
   if(e.target.id==='p-year'&&p){p.year=e.target.value;persistAccount();return}
+  if(e.target.id==='p-voice'){setVoiceChoice(e.target.value);track('voice_changed',{voice:e.target.value?'chosen':'auto'});say('giraffe');return}
   if(e.target.id==='d-title'){draft.title=e.target.value.trim();return}
   if(e.target.id==='consent-box'){consentTicked=e.target.checked;renderView();return}
   if(e.target.id==='sub-terms'){termsAgreed=e.target.checked;termsAt=termsAgreed?new Date().toISOString():null;subMsg='';renderView();return}
