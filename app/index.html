@@ -328,6 +328,64 @@ a{color:inherit}
 .pickcard.add{background:transparent;box-shadow:inset 0 0 0 2px dashed var(--line);border:2px dashed var(--line)}
 .pickcard.add .avatar{background:var(--surface-2);color:var(--ink)}
 .err{color:var(--bad);font-weight:600;margin:0;text-align:center;min-height:1.4em}
+/* ---- version 2 first run ---- */
+.v2goal{display:flex;flex-direction:column;gap:8px;text-align:left}
+.v2goal-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.v2goal-top b{font-size:.95rem}
+.v2goal-top span{font-size:.82rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.v2goal-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.v2goal-bar i{height:8px;border-radius:999px;background:var(--surface-2)}
+.v2goal-bar i.done{background:var(--good)}
+.v2goal-bar i.now{background:var(--pink)}
+.v2goal-done{font-size:.82rem;color:var(--good-ink);font-weight:600;display:flex;align-items:flex-start;gap:6px}
+.v2goal-done svg{width:16px;height:16px;flex:none;margin-top:2px}
+.onboard.v2 .prompt{display:flex;align-items:center;gap:12px;text-align:left}
+.onboard.v2 .prompt .owl{width:58px;height:58px;flex:none;align-self:center}
+.onboard.v2 .prompt h2{font-size:1.25rem;font-weight:800}
+.onboard.v2 .prompt p{color:var(--ink-soft);margin:0;font-size:.95rem}
+.v2ways{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.v2ways span{font-size:.7rem;font-weight:700;line-height:1.2;text-align:center;padding:6px 4px;border-radius:10px;background:var(--surface-2);color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
+.v2ways span.done{background:var(--good-soft);color:var(--good-ink)}
+.v2ways span.now{background:var(--pink);color:#022140}
+.v2score{font-size:3rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;line-height:1;margin:0}
+.v2score small{font-size:1.1rem;color:var(--ink-soft);font-weight:600}
+.v2gets{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;text-align:left}
+.v2gets li{display:flex;gap:10px;align-items:flex-start}
+.v2gets svg{flex:none;width:22px;height:22px;margin-top:1px;color:var(--good)}
+.v2card{border-radius:22px;padding:14px 16px;display:flex;align-items:center;gap:14px;color:#fff;text-align:left}
+.v2card .owl{width:68px;height:68px;flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+.v2card h2{font-size:1.3rem;font-weight:800;line-height:1.1;margin:0}
+.v2card p{font-size:.92rem;opacity:.92;margin:2px 0 0}
+.v2swatches{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.v2sw{width:46px;height:46px;border-radius:50%;border:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
+.v2sw[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:3px}
+.v2styles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.v2st{border:0;border-radius:14px;height:64px;font-size:.8rem;font-weight:700;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.v2st[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ground),0 0 0 6px var(--ink)}
+.v2count{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.v2count button{border:0;background:var(--surface);border-radius:16px;padding:18px 10px;font-weight:800;font-size:1.3rem;box-shadow:inset 0 0 0 2px var(--line)}
+.v2count button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--pink);background:var(--accent-soft)}
+.v2days{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.v2days button{border:0;background:var(--surface);border-radius:14px;padding:11px 4px;font-weight:700;box-shadow:inset 0 0 0 2px var(--line)}
+.v2days button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--pink);background:var(--accent-soft)}
+.v2sum{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;text-align:left;font-size:.95rem}
+.v2sum dt{color:var(--ink-soft)}
+.v2sum dd{margin:0;font-weight:600}
+.onboard.v2 input:not([type=checkbox]),.onboard.v2 textarea{width:100%}
+.v2plan{border:0;text-align:left;background:var(--surface);border-radius:20px;padding:16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;box-shadow:inset 0 0 0 2px var(--line);width:100%}
+.v2plan[aria-checked="true"]{box-shadow:inset 0 0 0 3px var(--ink);background:var(--accent-soft)}
+.v2radio{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--ink-soft);grid-row:1/3}
+.v2plan[aria-checked="true"] .v2radio{box-shadow:inset 0 0 0 7px var(--ink)}
+.v2pname{font-weight:800;font-size:1.1rem}
+.v2pper{font-size:.9rem;color:var(--ink-soft);grid-column:2}
+.v2pprice{font-weight:800;font-size:1.25rem;grid-row:1/3;grid-column:3;text-align:right;font-variant-numeric:tabular-nums}
+.v2pprice small{display:block;font-size:.82rem;font-weight:600;color:var(--ink-soft)}
+.v2best{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--gold);color:#022140;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+.v2timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;font-size:.85rem}
+.v2timeline div{background:var(--surface-2);border-radius:12px;padding:8px 4px}
+.v2timeline b{display:block;font-size:.95rem}
+.hello.kc{border-radius:24px;padding:12px 14px;align-items:center}
+.ghost.plain{background:transparent;text-decoration:underline;text-underline-offset:3px}
 </style>
 
 <div class="app">
@@ -357,9 +415,9 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='1.17';
+const APP_VERSION='2.2';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
-   parent always says which build it came from. Set from APP_VERSION, never typed twice. (1.14) */
+   parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
 document.addEventListener('DOMContentLoaded',()=>{const m=document.getElementById('vermark');if(m)m.textContent=APP_BUILD_LABEL});
 
@@ -370,11 +428,6 @@ let anonId=null, sessionId=null, evQueue=[];
 function platformKind(){try{const w=Math.min(screen.width,screen.height);if(w<=520)return 'mobile';if(w<=1024)return 'tablet';return 'desktop'}catch(e){return 'unknown'}}
 function getAnonId(){if(anonId)return anonId;try{anonId=localStorage.getItem(ANON_KEY);if(!anonId){anonId=uuid();localStorage.setItem(ANON_KEY,anonId)}}catch(e){anonId=anonId||uuid()}return anonId}
 function refHost(){try{return document.referrer?new URL(document.referrer).hostname.slice(0,60):''}catch(e){return ''}}
-/* 1.15: a school spelling sheet's QR code opens /app/?w=word,word&t=title&d=yyyy-mm-dd&ref=sheet.
-   The words are held here in memory only, and the w, t and d parts are taken off the address
-   straight away so a reload or a shared link does not bring them back. Nothing is saved until a
-   grown up chooses the child and saves the list behind the Grown ups PIN. ref stays, so the
-   visit is still counted as coming from a sheet. */
 let sheetImport=null;
 (function readSheetLink(){
   try{
@@ -672,8 +725,6 @@ async function connect(){
   sb.auth.onAuthStateChange((event,session)=>{
     if(session&&session.user&&(!user||user.id!==session.user.id)){setTimeout(()=>boot(session),0)}
     if(event==='SIGNED_OUT'){user=null;resetState();view='signin';renderChrome();renderView()}
-    /* Belt and braces: the reset email sends a code, but if a link is ever used instead
-       the parent still arrives at the choose a new password screen rather than nowhere. */
     if(event==='PASSWORD_RECOVERY'){codePurpose='recovery';pwPending='newpw';authStage='newpw';authMsg='';view='signin';renderChrome();renderView()}
   });
   readAuthError();
@@ -681,7 +732,7 @@ async function connect(){
   flushEvents();
   const {data}=await sb.auth.getSession();
   if(data&&data.session) boot(data.session);
-  else if(!user){view='signin';renderChrome();renderView()}
+  else if(!user){view=(V2&&!authMsg)?'v2':'signin';renderChrome();renderView()}
 }
 function readAuthError(){
   try{
@@ -703,13 +754,14 @@ async function boot(session){
   try{
     if(location.hash&&/access_token|error/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
+    if(v2.pending){await v2Commit(fam);return}
     if(!fam||!fam.consented_at){view='consent';renderChrome();renderView();return}
     await loadFamily(fam);
   }catch(e){view='loaderror';renderChrome();renderView()}
 }
 async function loadFamily(fam){
   const sp=await run(sb.from('spellers').select('*').eq('parent_id',user.id).order('created_at',{ascending:true}),'profiles');
-  S.account={pin:fam.pin_hash||null,sound:fam.sound!==false,profiles:(sp||[]).map(s=>({id:s.id,name:s.name,year:s.school_year||'none',createdAt:Date.parse(s.created_at)||Date.now()}))};
+  S.account={pin:fam.pin_hash||null,sound:fam.sound!==false,profiles:(sp||[]).map(s=>({id:s.id,name:s.name,year:s.school_year||'none',colour:s.colour||null,cardStyle:s.card_style||null,createdAt:Date.parse(s.created_at)||Date.now()}))};
   await loadSubscription();
   afterAccount();
   afterCheckout();
@@ -724,9 +776,9 @@ async function giveConsent(){
 }
 function afterAccount(){
   const profs=S.account.profiles;
-  if(!profs.length){startOnboarding();return}
   if(pwPending){authStage=pwPending;pwPending='';authMsg='';view='signin';renderChrome();renderView();window.scrollTo(0,0);return}
   if(sheetImport){view='sheet';renderChrome();renderView();return}
+  if(!profs.length){startOnboarding();return}
   // Card up front: a family that has never subscribed is asked once, after their
   // first child is set up, before any lesson is reachable. They can decline and
   // look around; the app is read only until they subscribe.
@@ -765,7 +817,7 @@ function refresh(){
 const plain=d=>{try{return d==null?d:JSON.parse(JSON.stringify(d))}catch(e){return {}}};
 const profile=()=>S.account.profiles.find(p=>p.id===S.pid)||null;
 const profileName=()=>{const p=profile();return p?p.name:''};
-const avColour=p=>{const i=S.account.profiles.indexOf(p);return AV_COLS[(i<0?0:i)%AV_COLS.length]};
+const avColour=p=>{if(p&&p.colour)return p.colour;const i=S.account.profiles.indexOf(p);return AV_COLS[(i<0?0:i)%AV_COLS.length]};
 const avatarHTML=(p,cls='')=>`<span class="avatar ${cls}" style="background:${avColour(p)}" aria-hidden="true">${esc((p.name||'?').trim().charAt(0).toUpperCase())}</span>`;
 function activeList(){
   const lists=S.lists.lists||{}; const ids=Object.keys(lists);
@@ -886,6 +938,9 @@ function renderChrome(){
   document.querySelector('.topbar').hidden=!inApp;
   document.querySelector('.tabbar').hidden=!inApp||!$('#lesson').hidden;
   document.querySelector('.app').classList.toggle('bare',!inApp);
+  const appEl=document.querySelector('.app');
+  const pc=inApp&&profile()&&profile().colour;
+  if(pc){appEl.style.setProperty('--owl-body',pc);appEl.style.setProperty('--owl-wing',`color-mix(in srgb,${pc} 78%,#fff)`)}else{appEl.style.removeProperty('--owl-body');appEl.style.removeProperty('--owl-wing')}
   if(!inApp) return;
   const p=profile();
   $('#brand').innerHTML=`${owl()}<div class="brand-name solo">Spelling <span>Nest</span></div>`;
@@ -897,10 +952,303 @@ $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');i
 $('#pills').addEventListener('click',e=>{if(e.target.closest('[data-act="switch"]')){view='pick';unlocked=false;renderChrome();renderView()}});
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
 
+/* ================= Version 2 first run (new families only) =================
+   Added for version 2, September 2026. A new visitor plays a short grown up round, sets up
+   their child, and only then gives an email address. Until the emailed code is confirmed,
+   everything typed here lives in the v2 variable below and nowhere else: not in
+   localStorage, not in a cookie, not sent to us. Closing the page discards it. Consent is
+   ticked on the save screen, and the family row, the child and the word list are written
+   only after the code is confirmed, so consent still comes before anything is stored.
+   Existing families use "I already have an account" and sign in exactly as before. Nothing
+   after sign in changes, apart from the plan screen that follows a brand new setup. */
+const V2=true;
+const V2_COLOURS=[['Navy','#022140'],['Rose','#D65A77'],['Leaf','#1D855A'],['Sky','#3B6EA8'],['Honey','#C9831B'],['Plum','#7A4FA0']];
+const V2_STYLES=[['plain','Plain'],['stars','Stars'],['stripes','Stripes'],['dots','Dots']];
+function cardBg(style,c){
+  if(style==='stars')return `radial-gradient(circle at 20% 30%,rgba(255,255,255,.35) 0 2px,transparent 3px) 0 0/22px 22px,radial-gradient(circle at 70% 70%,rgba(255,255,255,.25) 0 1.5px,transparent 2.5px) 0 0/17px 17px,${c}`;
+  if(style==='stripes')return `repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 10px,transparent 10px 20px),${c}`;
+  if(style==='dots')return `radial-gradient(rgba(255,255,255,.22) 3px,transparent 3.5px) 0 0/16px 16px,${c}`;
+  return c;
+}
+const owlVars=c=>`--owl-body:${c};--owl-wing:color-mix(in srgb,${c} 78%,#fff)`;
+/* Four words from the Year 5 and 6 statutory list, one for each way a child practises. */
+const V2_DEMO=[
+  {type:'hear',w:'accommodate',tip:'It is big enough to accommodate two c’s and two m’s.'},
+  {type:'unjumble',w:'conscience',tip:'Your conscience has science hiding inside it.'},
+  {type:'missing',w:'mischievous',tip:'Only three beats: mis, chiev, ous. There is no i before ous.',blanks:[4,5,9]},
+  {type:'lcwc',w:'necessary',tip:'One collar and two sleeves: one c, two s.'},
+];
+const V2_TYPES={
+  hear:{h:'Listen and spell',p:'Spell the word you hear.'},
+  unjumble:{h:'Unjumble the spelling',p:'The letters are all there. Tap them in the right order.'},
+  missing:{h:'Fill in the missing letters',p:'Listen, then tap the letters that fit the gaps.'},
+  lcwc:{h:'Look, cover, write, check',p:'Look carefully at the word and say it.'},
+};
+const V2_GOAL=['Tried it','Your child','Make it theirs','This week’s words','Save','Free fortnight'];
+const V2_DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const V2_DAY_SHORT=['Mon','Tue','Wed','Thu','Fri'];
+/* A family arriving from a school spelling sheet starts the first run with the words and the
+   test day already filled in, so the QR code is worth scanning before an account exists.
+   Version 2 keeps the test day as a weekday rather than a date, so the sheet's date is
+   converted; Sunday is 6 here and 0 in JavaScript. */
+function v2SheetSeed(){
+  if(!sheetImport) return {words:'',day:4};
+  let day=4;
+  if(sheetImport.date){try{const [y,m,d]=sheetImport.date.split('-').map(Number);const dt=new Date(y,m-1,d);if(!isNaN(dt))day=(dt.getDay()+6)%7}catch(e){}}
+  return {words:sheetImport.words.join(', '),day:day};
+}
+const V2_BLANK=()=>Object.assign({step:'hello',d:null,count:1,ki:0,kids:[],name:'',year:null,colour:0,style:'plain',words:'',day:4,consent:false,pending:false,busy:false,msg:'',code:''},v2SheetSeed());
+let v2=V2_BLANK();
+let planPick='annual', pinWasReset=false;
+
+function v2NextDay(){const d=new Date();d.setHours(0,0,0,0);let diff=((v2.day+1)-d.getDay()+7)%7;if(diff===0)diff=7;d.setDate(d.getDate()+diff);return d}
+function v2Goal(at){
+  const labels=V2_GOAL.map((g,i)=>i===1&&v2.count>1?'Your children':g); const done=labels.slice(0,Math.min(at,6));
+  return `<div class="v2goal"><div class="v2goal-top"><b>Ready for ${V2_DAYS[v2.day]}’s test</b><span>${at>=6?'All done':'Step '+(at+1)+' of 6'}</span></div>
+  <div class="v2goal-bar" aria-hidden="true">${labels.map((g,i)=>`<i class="${i<at?'done':i===at?'now':''}"></i>`).join('')}</div>
+  ${done.length?`<div class="v2goal-done">${ICON.tick}<span>${done.join(' · ')}</span></div>`:''}</div>`;
+}
+/* More than one child: the child being set up lives in v2.name, year, colour and style;
+   finished ones are kept in v2.kids. v2AllKids() gives every child, including the current one. */
+function v2Keep(){v2.kids[v2.ki]={name:v2.name.trim().replace(/\s+/g,' ').slice(0,20),year:v2.year,colour:v2.colour,style:v2.style}}
+function v2Load(i){const k=v2.kids[i]||{name:'',year:null,colour:i%V2_COLOURS.length,style:'plain'};v2.ki=i;v2.name=k.name;v2.year=k.year;v2.colour=k.colour;v2.style=k.style}
+function v2AllKids(){v2Keep();return v2.kids.slice(0,v2.count)}
+const andList=a=>a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+function v2NameTaken(){const n=v2.name.trim().toLowerCase();return !!n&&v2.kids.some((k,i)=>i!==v2.ki&&k&&k.name.toLowerCase()===n)}
+const v2Kid=()=>v2.name.trim()||'your child';
+const v2Poss=()=>v2.name.trim()?v2.name.trim()+'’s':'your child’s';
+const cap=s=>s.replace(/^./,c=>c.toUpperCase());
+function v2Card(k){
+  k=k||{name:v2.name.trim(),year:v2.year,colour:v2.colour,style:v2.style};
+  const c=V2_COLOURS[k.colour][1]; const nm=k.name?k.name+'’s':'Your child’s';
+  return `<div class="v2card" style="background:${cardBg(k.style,c)}"><span style="${owlVars(c)}">${owl()}</span><div><h2>${esc(nm)} nest</h2><p>${k.year&&k.year!=='none'?esc(k.year):'Kit is ready'}</p></div></div>`;
+}
+
+/* ---- the grown up round: one board for all four ways ---- */
+function v2NewBoard(){
+  const q=V2_DEMO[v2.d.idx],L=q.w.length,letters=q.w.split('');
+  const extra=n=>'tnsrlaeiodu'.split('').filter(c=>!q.w.includes(c)).slice(0,n);
+  const mix=a=>{let r;let g=0;do{r=shuffle(a)}while(r.join('')===a.join('')&&a.length>1&&++g<8);return r};
+  let pool,slots=Array(L).fill(null);
+  if(q.type==='unjumble')pool=mix(letters);
+  else if(q.type==='missing'){pool=mix([...q.blanks.map(i=>q.w[i]),...extra(3)]);slots=letters.map((c,i)=>q.blanks.includes(i)?null:{f:c})}
+  else pool=mix([...letters,...extra(2)]);
+  v2.d.board={slots,pool,used:pool.map(()=>false)};v2.d.checked=false;v2.d.ok=false;v2.d.phase=q.type==='lcwc'?'look':'write';
+}
+function v2SlotSize(L){const w=Math.min(($('#view')&&$('#view').clientWidth)||360,460);return Math.max(24,Math.min(46,Math.floor((w-12-(L-1)*6)/L)))}
+function v2DemoView(){
+  const q=V2_DEMO[v2.d.idx],b=v2.d.board,L=q.w.length,T=V2_TYPES[q.type],ss=v2SlotSize(L);
+  const placed=b.slots.some(x=>typeof x==='number');
+  const slot=(v,i)=>{if(v===null)return `<span class="slot ${v2.d.checked?'wrong':''}" role="img" aria-label="empty space"></span>`;if(typeof v==='object')return `<span class="slot fixed">${esc(v.f)}</span>`;const ch=b.pool[v];const st=v2.d.checked?(ch===q.w[i]?'right':'wrong'):'filled';return `<button class="slot ${st}" data-v2slot="${i}" ${v2.d.checked?'disabled':''} aria-label="${esc(ch)}, tap to remove">${esc(ch)}</button>`};
+  const steps=on=>`<div class="steps">${['Look','Cover','Write','Check'].map((x,i)=>`<span class="${on.includes(i)?'on':''}">${x}</span>`).join('')}</div>`;
+  const ways=`<div class="v2ways" aria-label="The four ways your child practises">${V2_DEMO.map((d,i)=>`<span class="${i<v2.d.idx?'done':i===v2.d.idx?'now':''}">${V2_TYPES[d.type].h}</span>`).join('')}</div>`;
+  const sub=q.type==='lcwc'?(v2.d.phase==='look'?T.p:v2.d.checked?'Check it against the word.':'The word is covered. Now build it from memory.'):T.p;
+  const head=`<div class="prompt">${owl('think')}<div><div class="eyebrow">Way ${v2.d.idx+1} of 4</div><h2>${T.h}</h2><p>${sub}</p></div></div>`;
+  if(q.type==='lcwc'&&v2.d.phase==='look')return `<div class="onboard v2">${ways}${head}
+    <div class="lookcard">${steps([0])}<div class="bigword">${chunkHTML(q.w)}</div></div>
+    <div class="listen" style="justify-content:center"><button class="ghost" data-v2="say">${ICON.speaker}Hear it</button></div>
+    <button class="btn block" data-v2="cover">Cover it</button></div>`;
+  const last=v2.d.idx===V2_DEMO.length-1;
+  const fb=!v2.d.checked?'':`<div class="fb ${v2.d.ok?'good':'bad'}" role="status"><h3>${v2.d.ok?ICON.tick+'Brilliant!':ICON.x+'Nearly! Here is the spelling'}</h3>${chunkHTML(q.w,'sm')}<p class="note" style="margin:0"><b>Kit’s tip:</b> ${esc(q.tip)}</p></div>`;
+  return `<div class="onboard v2">${ways}${head}
+    ${q.type==='lcwc'?`<div class="lookcard">${steps(v2.d.checked?[3]:[1,2])}${v2.d.checked?`<div class="bigword">${chunkHTML(q.w)}</div>`:`<div class="covered" aria-label="word covered">${'<i></i>'.repeat(L)}</div>`}</div>`:''}
+    ${v2.d.checked||q.type==='lcwc'?'':`<div class="listen" style="justify-content:center"><button class="ghost" data-v2="say">${ICON.speaker}Hear it</button><button class="ghost" data-v2="slow">${ICON.slow}Slowly</button></div>`}
+    <div class="slots" style="--slot-size:${ss}px;--slot-gap:6px">${b.slots.map(slot).join('')}</div>
+    ${v2.d.checked?fb:`<div class="pool" style="--tile-size:44px">${b.pool.map((c,i)=>`<button class="tile" data-v2tile="${i}" ${b.used[i]?'disabled':''} aria-label="letter ${esc(c)}">${b.used[i]?'':esc(c)}</button>`).join('')}</div>
+      ${placed?`<div class="free-tools"><button class="ghost small" data-v2="clear">${ICON.clear}Clear</button></div>`:''}`}
+    <button class="btn block ${v2.d.checked?(v2.d.ok?'good':'bad'):''}" data-v2="check" ${placed||v2.d.checked?'':'disabled'}>${v2.d.checked?(last?'See how I did':'Next word'):'Check'}</button></div>`;
+}
+
+function v2View(){
+  const s=v2.step;
+  if(s==='hello')return `<div class="onboard v2">${owl('cheer')}
+    <h1>See what your child will play</h1>
+    <p class="lead">Before anything else, try a grown up round: four words from the Year 5 and 6 spelling list, one for each of the four ways your child will practise. It takes about two minutes.</p>
+    <button class="btn block pink" data-v2="start">Try the grown up round</button>
+    <button class="ghost plain" data-v2="signin" style="justify-content:center">I already have an account</button></div>`;
+  if(s==='demo')return v2DemoView();
+  if(s==='score'){const r=v2.d.right;return `<div class="onboard v2">${owl('cheer')}
+    <p class="v2score">${r}<small> of 4</small></p>
+    <h1>${r===4?'Top marks. Now it’s their turn':'Tricky, aren’t they? Now it’s their turn'}</h1>
+    <section class="card stack"><div class="eyebrow">What your child gets</div><ul class="v2gets">
+      <li>${ICON.tick}<span>Their own school list each week, practised in ten minutes a day</span></li>
+      <li>${ICON.tick}<span>Kit says every word aloud, so they practise spelling, not reading</span></li>
+      <li>${ICON.tick}<span>The four ways you just tried, mixed so each word is practised more than one way</span></li>
+      <li>${ICON.tick}<span>The tricky part of each word shown in colour, like you just saw</span></li>
+      <li>${ICON.tick}<span>A countdown to test day, and words they miss come back until they stick</span></li></ul></section>
+    <button class="btn block" data-v2go="count">Set this up for my family</button>
+    <p class="note" style="text-align:center">Takes about two minutes. No card needed yet.</p></div>`}
+  if(s==='count')return `<div class="onboard v2">${v2Goal(1)}
+    <h1>How many children will practise?</h1>
+    <div class="v2count" role="group" aria-label="Number of children">${[1,2,3,4].map(n=>`<button data-v2count="${n}" aria-pressed="${v2.count===n&&v2.kids.length>0}">${n===4?'4 or more':n}</button>`).join('')}</div>
+    <p class="note" style="text-align:center">One price covers every child in your family. You can add more later in Grown ups.</p></div>`;
+  if(s==='child')return `<div class="onboard v2">${v2Goal(1)}
+    ${v2.count>1?`<div class="eyebrow" style="text-align:center">Child ${v2.ki+1} of ${v2.count}</div>`:''}
+    <h1>${v2.ki>0?'Who is next?':'Who is practising?'}</h1>
+    <div><label class="lbl" for="v2-name">First name or nickname</label><input id="v2-name" autocomplete="off" maxlength="20" value="${esc(v2.name)}" placeholder="For example, Ava"><p class="note" style="margin-top:6px">A first name or nickname only, please, never a full name.</p></div>
+    <div><span class="lbl">School year</span><div class="yeargrid" role="group" aria-label="School year">${YEARS.map(y=>`<button data-v2year="${y}" aria-pressed="${v2.year===y}" ${y==='Reception'?'class="wide"':''}>${y}</button>`).join('')}<button class="wide" data-v2year="none" aria-pressed="${v2.year==='none'}">I’d rather not say</button></div></div>
+    <p class="note" style="text-align:center">Kept on this device only until you choose to save it. Nothing reaches us before then.</p>
+    <p class="err" id="v2-name-err" role="alert" ${v2NameTaken()?'':'hidden'}>You have already added a child with that name. Use a nickname to tell them apart.</p>
+    <button class="btn block" data-v2go="theirs" ${v2.name.trim()&&v2.year&&!v2NameTaken()?'':'disabled'}>Continue</button></div>`;
+  if(s==='theirs'){const c=V2_COLOURS[v2.colour][1];return `<div class="onboard v2">${v2Goal(2)}
+    <h1>Make it ${esc(v2.name.trim()?v2.name.trim()+'’s':'theirs')}</h1>
+    ${v2Card()}
+    <div><span class="lbl">Kit’s colour</span><div class="v2swatches">${V2_COLOURS.map(([n,col],i)=>`<button class="v2sw" style="background:${col}" data-v2colour="${i}" aria-pressed="${v2.colour===i}" aria-label="${n}"></button>`).join('')}</div></div>
+    <div><span class="lbl">Card style</span><div class="v2styles">${V2_STYLES.map(([k,n])=>`<button class="v2st" style="background:${cardBg(k,c)}" data-v2style="${k}" aria-pressed="${v2.style===k}">${n}</button>`).join('')}</div></div>
+    <p class="note" style="text-align:center">Tip: let ${esc(v2Kid())} choose these.</p>
+    <button class="btn block" data-v2="nextkid">${v2.ki<v2.count-1?'Next child':'Continue'}</button></div>`}
+  if(s==='words'){const ws=normaliseWords(v2.words).slice(0,40);return `<div class="onboard v2">${v2Goal(3)}
+    <h1>${v2.count>1?esc((v2.kids[0]&&v2.kids[0].name)||'Your first child')+'’s spellings this week':'This week’s spellings'}</h1>
+    <p class="lead">Type or paste the words from school.${v2.count>1?` ${esc(andList(v2.kids.slice(1,v2.count).map(k=>k.name)))} start with an example list, and you can add their school words in Grown ups.`:''}</p>
+    <div><label class="lbl" for="v2-words">This week’s words</label><textarea id="v2-words" placeholder="charge, bulge, village">${esc(v2.words)}</textarea></div>
+    <div id="v2-chips">${v2Chips(ws)}</div>
+    <div><span class="lbl">Test day</span><div class="v2days" role="group" aria-label="Test day">${V2_DAY_SHORT.map((d,i)=>`<button data-v2day="${i}" aria-pressed="${v2.day===i}" aria-label="${V2_DAYS[i]}">${d}</button>`).join('')}</div>
+    <p class="note" style="margin-top:6px">Next test: ${esc(prettyDate(dayStr(v2NextDay())))}</p></div>
+    <button class="btn block" data-v2go="save">Continue</button></div>`}
+  if(s==='save'){const ws=normaliseWords(v2.words);const kids=v2AllKids();return `<div class="onboard v2">${v2Goal(4)}
+    <h1>${kids.length>1?'Save your family’s nests':'Save '+esc(kids[0].name)+'’s nest'}</h1>
+    <section class="card stack">${kids.map(k=>v2Card(k)).join('')}
+    <dl class="v2sum"><dt>Words</dt><dd>${ws.length?ws.length+' ready to practise'+(kids.length>1?' for '+esc(kids[0].name):''):'Example list to start with'}</dd><dt>Test</dt><dd>${esc(prettyDate(dayStr(v2NextDay())))}</dd><dt>You</dt><dd>${v2.d?v2.d.right:0} of 4 in the grown up round</dd></dl></section>
+    <div><label class="lbl" for="v2-email">Your email address</label><input type="email" id="v2-email" autocomplete="email" inputmode="email" value="${esc(authEmail)}" placeholder="you@example.com"></div>
+    <label class="consent" for="v2-consent"><input type="checkbox" id="v2-consent" ${v2.consent?'checked':''}><span>I am the parent or carer, and I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a> and the <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>
+    ${v2.msg?`<p class="err" role="alert">${esc(v2.msg)}</p>`:''}
+    <button class="btn block" data-v2="send" ${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)&&v2.consent&&!v2.busy?'':'disabled'}>${v2.busy?'Sending…':'Continue'}</button>
+    <p class="note" style="text-align:center">We email you a code to type in. No password to remember.</p></div>`}
+  if(s==='code')return `<div class="onboard v2">${v2Goal(4)}
+    <h1>Check your email</h1>
+    <p class="lead">We sent a code to <b>${esc(authEmail)}</b>. It can take a minute to arrive, so check your junk folder too.</p>
+    <div><label class="lbl" for="v2-code">Code from the email</label><input type="text" id="v2-code" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="10" value="${esc(v2.code)}" style="font-size:1.5rem;letter-spacing:.3em;text-align:center"></div>
+    ${v2.msg?`<p class="err" role="alert">${esc(v2.msg)}</p>`:''}
+    <button class="btn block" data-v2="verify" ${v2.code.length>=6&&!v2.busy?'':'disabled'}>${v2.busy?'Saving…':'Continue'}</button>
+    <div class="row" style="justify-content:center"><button class="ghost small" data-v2="send">Send another code</button><button class="ghost small" data-v2go="save">Use a different email address</button></div></div>`;
+  return '';
+}
+/* The chips under the words box update as the parent types, without redrawing the page. Redrawing on
+   the change event swallowed the tap on Continue, because the box loses focus on that same tap. */
+function v2Chips(ws){return ws.length?`<div class="words">${ws.map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:`<button class="ghost" data-v2="example" style="justify-content:center;width:100%">No list yet? Use an example list</button>`}
+function v2Go(step){v2.step=step;v2.msg='';track('setup_step_viewed',{step});renderView();window.scrollTo(0,0)}
+async function v2Send(){
+  if(v2.busy)return;
+  const email=authEmail;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){v2.msg='Type a full email address, like name@example.com.';renderView();return}
+  v2.busy=true;v2.msg='';renderView();let ok=false;
+  try{
+    const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+    if(error)v2.msg=/rate|limit|seconds/i.test(error.message||'')?'Too many emails just now. Wait a minute, then try again.':'The email could not be sent: '+(error.message||'unknown error');
+    else ok=true;
+  }catch(e){v2.msg='The email could not be sent. Check your internet connection.'}
+  track('signin_link_requested',{outcome:ok?'sent':'error',via:'first_run'});
+  v2.busy=false;if(ok){v2.code='';v2Go('code')}else renderView();
+}
+async function v2Verify(){
+  if(v2.busy)return;
+  const code=String(v2.code||'').replace(/\D/g,'');
+  if(code.length<6){v2.msg='Type the whole code from the email, digits only.';renderView();return}
+  v2.busy=true;v2.msg='';v2.pending=true;renderView();
+  try{
+    const {error}=await sb.auth.verifyOtp({email:authEmail,token:code,type:'email'});
+    if(error){v2.pending=false;v2.busy=false;v2.code='';v2.msg=/expired/i.test(error.message||'')?'That code has expired. Ask for another one.':'That code was not right. Check the email again, or ask for another code.';renderView();return}
+    /* onAuthStateChange boots the app, and boot() hands over to v2Commit. */
+  }catch(e){v2.pending=false;v2.busy=false;v2.msg='We could not save just then. Check your internet connection and try again.';renderView()}
+}
+/* Called from boot() once the code is confirmed. Writes consent, then the child and their list. */
+async function v2Commit(fam){
+  try{
+    if(fam&&fam.consented_at){
+      const sp=await run(sb.from('spellers').select('id').eq('parent_id',user.id).limit(1),'profiles');
+      if(sp&&sp.length){v2.pending=false;await loadFamily(fam);toast('Welcome back. You already have an account, so here it is.');return}
+    }else{
+      await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
+      track('consent_given',{via:'first_run'});
+      fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
+    }
+    S.account={pin:fam.pin_hash||null,sound:fam.sound!==false,profiles:[]};
+    await loadSubscription();
+    const ws=normaliseWords(v2.words).slice(0,40); const kids=v2AllKids();
+    /* The words came from a school sheet, and they have now been used. Clear the import so
+       the family is not offered the same list again the moment setup finishes. */
+    if(sheetImport){track('sheet_scanned',{words:ws.length,has_date:!!sheetImport.date,outcome:'first_setup'});sheetImport=null}
+    v2.pending=false;v2.busy=false;
+    for(let i=0;i<kids.length;i++){
+      const k=kids[i], own=i===0?ws:[];
+      ob={step:'done',name:k.name,year:k.year||'none',pin1:'',adding:false,words:own,testDate:own.length?dayStr(v2NextDay()):'',wordErr:'',colour:V2_COLOURS[k.colour][1],cardStyle:k.style};
+      if(!(await createProfile({noRoute:true})))return;
+    }
+    S.pid=null; afterAccount();
+  }catch(e){v2.pending=false;v2.busy=false;view='loaderror';renderChrome();renderView()}
+}
+function subscribeView(){
+  const names=S.account.profiles.map(p=>p.name); const kid=names.length?andList(names):'your child';
+  const end=new Date(); end.setDate(end.getDate()+14);
+  const price=planPick==='annual'?'£20':'£3', per=planPick==='annual'?'a year':'a month';
+  const dis=(!ukConfirmed||!termsAgreed||subBusy)?'disabled':'';
+  return `<div class="onboard v2">${v2Goal(5)}
+  <h1>Start ${esc(kid)}’s free fortnight</h1>
+  <div role="radiogroup" aria-label="Choose a plan" class="stack" style="gap:10px">
+    <button class="v2plan" role="radio" data-act="plan-annual" aria-checked="${planPick==='annual'}"><span class="v2radio"></span><span class="v2pname">Yearly<span class="v2best">Best value</span></span><span class="v2pper">£1.67 a month, save £16 on monthly</span><span class="v2pprice">£20<small>a year</small></span></button>
+    <button class="v2plan" role="radio" data-act="plan-monthly" aria-checked="${planPick==='monthly'}"><span class="v2radio"></span><span class="v2pname">Monthly</span><span class="v2pper">Cancel any month</span><span class="v2pprice">£3<small>a month</small></span></button>
+  </div>
+  <div class="v2timeline"><div><b>Today</b>£0</div><div><b>Before it ends</b>We email you</div><div><b>${end.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</b>${price} unless you cancel</div></div>
+  <p class="note" style="text-align:center;margin:0">One price covers every child in your family. If you ever stop, nothing is deleted.</p>
+  <section class="card stack">
+  <div class="switch"><span><b>My billing address is in the United Kingdom</b><br><span class="note">Spelling Nest is sold in the United Kingdom only for now.</span></span>
+    <button class="toggle" role="switch" aria-checked="${ukConfirmed}" data-act="sub-uk" aria-label="My billing address is in the United Kingdom"></button></div>
+  <label class="consent" for="sub-terms"><input type="checkbox" id="sub-terms" ${termsAgreed?'checked':''}><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a>. I want my subscription to start straight away, and I understand that my card will be charged when the free fortnight ends unless I cancel before then.</span></label>
+  <button class="btn block" data-act="sub-go" ${dis}>${subBusy?'Opening…':`Start free fortnight, then ${price} ${per}`}</button>
+  <p class="note" style="margin:0">Card details are taken on Stripe’s secure page and never reach Spelling Nest. Nothing is charged for fourteen days, and we email you before the first payment. It renews automatically until you cancel, and you can cancel from Grown ups at any time, in no more steps than it took to subscribe.</p>
+  ${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>
+  <button class="ghost" data-act="sub-later" style="justify-content:center">Not now, show me the app</button></div>`;
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.v2==='restart'&&view!=='v2'){v2=V2_BLANK();view='v2';renderChrome();renderView();window.scrollTo(0,0);return}
+  if(view!=='v2')return;
+  const d=v2.d, b=d&&d.board;
+  if(t.dataset.v2go){v2Go(t.dataset.v2go);return}
+  if(t.dataset.v2count){const n=+t.dataset.v2count;v2.count=n;v2.kids=v2.kids.slice(0,n);v2Load(0);v2Go('child');return}
+  if(t.dataset.v2year){v2.year=t.dataset.v2year;renderView();return}
+  if(t.dataset.v2colour){v2.colour=+t.dataset.v2colour;renderView();return}
+  if(t.dataset.v2style){v2.style=t.dataset.v2style;renderView();return}
+  if(t.dataset.v2day){v2.day=+t.dataset.v2day;renderView();return}
+  if(t.dataset.v2tile!==undefined&&b){const i=+t.dataset.v2tile,k=b.slots.indexOf(null);if(k<0||b.used[i])return;b.slots[k]=i;b.used[i]=true;sfx.tap();renderView();return}
+  if(t.dataset.v2slot!==undefined&&b){const k=+t.dataset.v2slot,v=b.slots[k];if(typeof v!=='number')return;b.used[v]=false;b.slots[k]=null;renderView();return}
+  switch(t.dataset.v2){
+    case 'start': v2.d={idx:0,right:0}; v2NewBoard(); track('demo_started',{}); v2Go('demo'); setTimeout(()=>say(V2_DEMO[0].w),300); break;
+    case 'signin': authStage='email'; authMsg=''; view='signin'; renderChrome(); renderView(); break;
+    case 'say': say(V2_DEMO[d.idx].w); break;
+    case 'slow': say(V2_DEMO[d.idx].w,{slow:true}); break;
+    case 'cover': d.phase='write'; renderView(); break;
+    case 'clear': b.slots=b.slots.map(v=>typeof v==='number'?null:v); b.used=b.used.map(()=>false); sfx.tap(); renderView(); break;
+    case 'check': {
+      const q=V2_DEMO[d.idx];
+      if(!d.checked){const ans=b.slots.map(v=>v===null?'':typeof v==='number'?b.pool[v]:v.f).join('');d.ok=ans===q.w;d.checked=true;if(d.ok){d.right++;sfx.good()}else{sfx.bad();setTimeout(()=>say(q.w,{slow:true}),450)}track('demo_word_checked',{way:q.type,correct:d.ok});renderView();break}
+      if(d.idx<V2_DEMO.length-1){d.idx++;v2NewBoard();renderView();window.scrollTo(0,0);setTimeout(()=>say(V2_DEMO[d.idx].w),250)}
+      else{track('demo_completed',{score:d.right});v2Go('score')}
+      break}
+    case 'example': v2.words=EXAMPLE.words.join(', '); renderView(); break;
+    case 'nextkid': v2Keep(); if(v2.ki<v2.count-1){v2Load(v2.ki+1);v2Go('child')}else v2Go('words'); break;
+    case 'send': v2Send(); break;
+    case 'verify': v2Verify(); break;
+    case 'restart': v2=V2_BLANK(); view='v2'; renderChrome(); renderView(); break;
+  }
+});
+document.addEventListener('input',e=>{
+  if(view!=='v2')return;const id=e.target.id;
+  const en=(sel,ok)=>{const x=$(sel);if(x)x.disabled=!ok};
+  if(id==='v2-name'){v2.name=e.target.value;const taken=v2NameTaken();const er=$('#v2-name-err');if(er)er.hidden=!taken;en('[data-v2go="theirs"]',v2.name.trim()&&v2.year&&!taken)}
+  if(id==='v2-words'){v2.words=e.target.value;const c=$('#v2-chips');if(c)c.innerHTML=v2Chips(normaliseWords(v2.words).slice(0,40))}
+  if(id==='v2-email'){authEmail=e.target.value.trim();en('[data-v2="send"]',/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)&&v2.consent)}
+  if(id==='v2-code'){v2.code=e.target.value.replace(/\D/g,'').slice(0,10);if(e.target.value!==v2.code)e.target.value=v2.code;en('[data-v2="verify"]',v2.code.length>=6)}
+});
+document.addEventListener('change',e=>{
+  if(view!=='v2')return;
+  if(e.target.id==='v2-consent'){v2.consent=e.target.checked;renderView()}
+});
+
 /* ---------- views ---------- */
 function renderView(){
   const v=$('#view');
-  if(view==='sheet') v.innerHTML=sheetView();
+  if(view==='v2') v.innerHTML=v2View();
   else if(view==='signin') v.innerHTML=signinView();
   else if(view==='consent') v.innerHTML=consentView();
   else if(view==='offline') v.innerHTML=`<div class="splash">${owl('sleepy')}<h2 style="font-size:1.3rem">Spelling Nest could not load</h2><p class="muted" style="margin:0;max-width:36ch">Check your internet connection, then refresh the page.</p><button class="btn" data-act="reload">Try again</button></div>`;
@@ -908,6 +1256,7 @@ function renderView(){
   else if(view==='splash') v.innerHTML=`<div class="splash">${owl('think')}<h2 style="font-size:1.3rem">Getting your nest ready…</h2></div>`;
   else if(view==='onboard') v.innerHTML=onboardView();
   else if(view==='subscribe') v.innerHTML=subscribeView();
+  else if(view==='sheet') v.innerHTML=sheetView();
   else if(view==='pick') v.innerHTML=pickView();
   else if(view==='play') v.innerHTML=playView();
   else if(view==='progress') v.innerHTML=progressView();
@@ -1005,18 +1354,6 @@ function signinView(){
   <button class="ghost block" data-act="pw-signup-open" style="justify-content:center">Set up a new family</button>
   ${terms}</section></div>`;
 }
-function subscribeView(){
-  const kid=(S.account.profiles[0]&&S.account.profiles[0].name)||'your child';
-  return `<div class="onboard">${owl('cheer')}<h1>One more step</h1>
-  <p class="lead">${esc(kid)} is all set up. Start your free fortnight and the lessons open straight away.</p>
-  <section class="card stack">
-    <div><div class="eyebrow">Fourteen days free</div><h2 style="font-size:1.25rem;margin-top:4px">Then £3 a month, or £20 for the year</h2></div>
-    <p class="note" style="margin:0">We take your card now so that practice carries on without interruption. <b>Nothing is charged for fourteen days.</b> We will email you before the first payment is due, and if you cancel before then you pay nothing at all.</p>
-    <p class="note" style="margin:0">One price covers every child in your family. If you ever stop, nothing is deleted: your word lists and progress stay exactly where they are.</p>
-    ${subChoose()}
-  </section>
-  <button class="ghost" data-act="sub-later" style="justify-content:center">Not now, show me the app</button></div>`;
-}
 function sheetView(){
   const imp=sheetImport||{words:[]}; const profs=S.account.profiles;
   return `<div class="onboard">${owl('cheer')}<h1>Words from school</h1>
@@ -1048,7 +1385,7 @@ function startOnboarding(adding){
   if(sheetImport&&!adding){ob.words=sheetImport.words.slice();ob.testDate=sheetImport.date||'';track('sheet_scanned',{words:ob.words.length,has_date:!!ob.testDate,outcome:'first_setup'});sheetImport=null}
   view='onboard'; renderChrome(); renderView(); window.scrollTo(0,0);
 }
-function obSteps(){const s=['welcome','name','year'];if(!S.account.pin)s.push('pin');s.push('words');s.push('done');return s}
+function obSteps(){return ['welcome','name','year','words','done']}
 function onboardView(){
   const steps=obSteps(); const at=steps.indexOf(ob.step==='pin2'?'pin':ob.step);
   const dots=`<div class="obsteps" aria-hidden="true">${steps.map((s,i)=>`<i class="${i<=at?'on':''}"></i>`).join('')}</div>`;
@@ -1100,7 +1437,8 @@ function playView(){
       <p class="muted" style="margin:0">Ask a grown up to add this week's words from school.</p>
       <button class="btn block" data-act="gogrown">Open Grown ups</button>
     </section>`;
-  return `<div class="hello">${owl('cheer')}<div class="bubble">Hello ${name}! ${line}</div></div>${nextCard}${listCard}`;
+  const pp=profile(); const kc=pp&&pp.colour?` kc" style="background:${cardBg(pp.cardStyle||'plain',pp.colour)}`:'';
+  return `<div class="hello${kc}">${owl('cheer')}<div class="bubble">Hello ${name}! ${line}</div></div>${nextCard}${listCard}`;
 }
 function progressView(){
   const days=new Set(S.progress.days); const now=new Date(); const dow=(now.getDay()+6)%7; const mon=new Date(now);mon.setDate(now.getDate()-dow);
@@ -1129,8 +1467,9 @@ function badgesView(){
 }
 function gateView(){
   if(pinFlow==='forgot') return `<section class="card gate">${owl('sleepy')}<h2 style="font-size:1.3rem">Forgotten the PIN?</h2><p class="muted" style="margin:0;max-width:36ch">Press and hold for 5 seconds to clear it. You will then choose a new PIN. Word lists and progress are not affected.</p><button class="btn hold" id="holdbtn" data-hold="5000"><span class="fill" style="transition-duration:5s"></span><span>Press and hold</span></button><button class="ghost small" data-act="pin-cancel">Back</button></section>`;
-  const title=pinFlow==='gate'?'Grown ups only':pinFlow==='change1'?'Choose a new grown up PIN':'Type the new PIN again';
-  const sub=pinFlow==='gate'?'Enter the 4 digit PIN to add spellings and change settings.':pinFlow==='change1'?'This PIN locks the Grown ups area on every profile.':'Just to check it matches.';
+  const first=!S.account.pin&&!changingPin&&!pinWasReset;
+  const title=pinFlow==='gate'?'Grown ups only':pinFlow==='change1'?(first?'Grown ups: choose a PIN':'Choose a new grown up PIN'):'Type the PIN again';
+  const sub=pinFlow==='gate'?'Enter the 4 digit PIN to add spellings and change settings.':pinFlow==='change1'?(first?'This is the first time Grown ups has been opened, so choose a 4 digit PIN. It keeps word lists and settings away from little fingers.':'This PIN locks the Grown ups area on every profile.'):'Just to check it matches.';
   return `<section class="card gate">${owl('sleepy')}<h2 style="font-size:1.3rem">${title}</h2><p class="muted" style="margin:0;max-width:36ch">${sub}</p>${pinPad()}${pinFlow==='gate'?'<button class="ghost small" data-act="pin-forgot">Forgotten the PIN?</button>':changingPin?'<button class="ghost small" data-act="pin-cancel">Cancel</button>':''}</section>`;
 }
 function grownView(){
@@ -1393,12 +1732,13 @@ function toJpeg(file){
 }
 function keepTitle(){const i=$('#d-title');if(i)draft.title=i.value.trim();const d=$('#d-date');if(d)draft.testDate=d.value||''}
 
-async function createProfile(){
-  const p={id:uuid(),name:ob.name,year:ob.year||'none',createdAt:Date.now()};
+async function createProfile(opts){
+  const p={id:uuid(),name:ob.name,year:ob.year||'none',colour:ob.colour||null,cardStyle:ob.cardStyle||null,createdAt:Date.now()};
   view='splash'; renderChrome(); renderView();
   try{
     await run(sb.from('families').update({pin_hash:S.account.pin,sound:!!S.account.sound}).eq('parent_id',user.id),'settings');
-    await run(sb.from('spellers').insert({id:p.id,parent_id:user.id,name:p.name,school_year:p.year}),'new speller');
+    const row={id:p.id,parent_id:user.id,name:p.name,school_year:p.year}; if(p.colour){row.colour=p.colour;row.card_style=p.cardStyle||'plain'}
+    await run(sb.from('spellers').insert(row),'new speller');
     const listId=uuid();
     const own=(ob.words&&ob.words.length)?ob.words.slice():null;
     const title=own?('This week’s spellings'+(ob.testDate?' · test '+prettyDate(ob.testDate):'')).slice(0,80):EXAMPLE.title;
@@ -1411,12 +1751,13 @@ async function createProfile(){
     track('speller_created',{school_year:p.year||'none',profile_count:S.account.profiles.length},p.id);
     track('list_created',{word_count:words.length,source:own?'signup':'example',has_test_date:!!tdate},p.id);
     await run(sb.from('speller_progress').insert(progressRow(p.id)),'progress');
-    /* 1.14: a family that has never subscribed meets the plan screen straight after their first
-       child is set up. Until 1.14 they landed on a locked home screen and only saw it on their
-       next visit. */
+    if(opts&&opts.noRoute)return true;
+    /* A family that has never subscribed meets the plan screen straight after their first child
+       is set up. Until 2.0 they landed on a locked home screen and only saw it on their next visit. */
     if(sub.loaded&&sub.reason==='never_subscribed'&&!subDeclined){S.pid=null;afterAccount();return}
     selectProfile(p.id,true);
-  }catch(e){ ob.step='done'; view='onboard'; renderChrome(); renderView(); }
+    return true;
+  }catch(e){ ob.step='done'; view='onboard'; renderChrome(); renderView(); return false; }
 }
 async function deleteProfile(){
   const pid=S.pid; if(!pid) return;
@@ -1476,7 +1817,7 @@ $('#view').addEventListener('click',e=>{
     case 'consent-go': if(consentTicked) giveConsent(); break;
     case 'sheet-for': takeSheet(t.dataset.pid); break;
     case 'sheet-skip': track('sheet_scanned',{words:(sheetImport&&sheetImport.words.length)||0,outcome:'not_now'}); sheetImport=null; afterAccount(); break;
-    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
+    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; pwFrom=''; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
     case 'wipe': confirmWipe=true; renderView(); break;
     case 'wipeno': confirmWipe=false; renderView(); break;
     case 'wipeyes': wipeFamily(); break;
@@ -1485,7 +1826,7 @@ $('#view').addEventListener('click',e=>{
     case 'ob-cancel': view='pick'; renderView(); break;
     case 'ob-back': {const order=obSteps();const cur=ob.step==='pin2'?'pin':ob.step;ob.step=order[Math.max(0,order.indexOf(cur)-1)];pinEntry='';pinErr='';renderView();break}
     case 'ob-name': {const v=($('#ob-name').value||'').trim().replace(/\s+/g,' ');if(!v){$('#ob-err').textContent='Type your child’s name or nickname to carry on.';break}if(S.account.profiles.some(p=>p.name.toLowerCase()===v.toLowerCase())){$('#ob-err').textContent='There is already a speller called '+v+'. Try a different nickname.';break}ob.name=v.slice(0,20);ob.step='year';renderView();break}
-    case 'ob-year': ob.step=S.account.pin?'words':'pin'; pinEntry=''; renderView(); break;
+    case 'ob-year': ob.step='words'; pinEntry=''; renderView(); break;
     case 'ob-words': {const ta=$('#ob-words');const di=$('#ob-date');const ws=normaliseWords(ta?ta.value:'');
       if(!ws.length){ob.wordErr='Type at least one word, or choose Skip for now.';renderView();break}
       ob.words=ws.slice(0,40); ob.testDate=di&&di.value?di.value:''; ob.wordErr=''; ob.step='done'; renderView(); break}
@@ -1518,6 +1859,9 @@ $('#view').addEventListener('click',e=>{
     case 'sub-later': subDeclined=true; afterAccount(); break;
     case 'sub-annual': startCheckout('annual'); break;
     case 'sub-monthly': startCheckout('monthly'); break;
+    case 'plan-annual': planPick='annual'; renderView(); break;
+    case 'plan-monthly': planPick='monthly'; renderView(); break;
+    case 'sub-go': startCheckout(planPick); break;
     case 'sub-manage': openPortal(); break;
     case 'sub-resume': resumeSubscription(); break;
     case 'fb-idea': {const ta=$('#fb-text'); if(ta) fbText=ta.value; fbKind='idea'; fbMsg=''; renderView(); break}
@@ -1563,7 +1907,7 @@ document.addEventListener('keydown',e=>{
 });
 /* press and hold (forgotten PIN) */
 let holdT=null;
-document.addEventListener('pointerdown',e=>{const b=e.target.closest('#holdbtn');if(!b)return;b.classList.add('holding');holdT=setTimeout(()=>{S.account.pin=null;persistAccount();pinFlow='change1';pinEntry='';pinErr='';renderView();toast('PIN cleared. Choose a new one.')},+b.dataset.hold||5000)});
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('#holdbtn');if(!b)return;b.classList.add('holding');holdT=setTimeout(()=>{S.account.pin=null;pinWasReset=true;persistAccount();pinFlow='change1';pinEntry='';pinErr='';renderView();toast('PIN cleared. Choose a new one.')},+b.dataset.hold||5000)});
 ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{const b=$('#holdbtn');if(b)b.classList.remove('holding');clearTimeout(holdT)},true));
 /* ---- homophones and example sentences (v1.5) ----
    SOUNDALIKE words never get a Listen and spell question, because sound alone
