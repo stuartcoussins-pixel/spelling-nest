@@ -473,14 +473,12 @@ function notFoundPage(blogLinks) {
 
 async function copySite() {
   await rm(OUT, { recursive: true, force: true });
-  await cp(SRC, OUT, {
-    recursive: true,
-    filter: (p) => {
-      const rel = path.relative(SRC, p);
-      if (!rel) return true;
-      return !EXCLUDE_TOP.has(rel.split(path.sep)[0]);
-    },
-  });
+  await mkdir(OUT, { recursive: true });
+  // Copy entry by entry: Node refuses to copy a folder into a subfolder of itself (OUT may sit inside SRC).
+  for (const e of await readdir(SRC, { withFileTypes: true })) {
+    if (EXCLUDE_TOP.has(e.name)) continue;
+    await cp(path.join(SRC, e.name), path.join(OUT, e.name), { recursive: true });
+  }
 }
 
 async function* htmlFiles(dir, rel = '') {
