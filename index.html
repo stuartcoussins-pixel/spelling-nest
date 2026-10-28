@@ -245,6 +245,9 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
 .plan p.small{color:var(--ink-soft);font-size:.96rem;margin-top:8px}
 .amount{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1}
 .amount span{font-size:1rem;font-weight:600;color:var(--ink-soft);letter-spacing:0}
+.plan.featured{border:2px solid var(--primary);background:linear-gradient(0deg,rgba(247,177,191,.10),rgba(247,177,191,.10)),var(--surface)}
+.plan-flag{display:inline-block;margin:0 0 8px;padding:5px 12px;border-radius:999px;background:var(--primary);color:var(--primary-ink);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:680px){nav.links a,footer ul a{display:inline-block;padding:11px 0}}
 .saving{display:inline-block;margin-top:12px;font-size:1.5rem;font-weight:800;color:var(--good);letter-spacing:-.02em}
 </style>
 <script type="application/ld+json">
@@ -556,13 +559,14 @@ try{
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <p class="eyebrow">For children aged 5 to 11</p>
+      <p class="eyebrow">For parents of children aged 5 to 11</p>
       <h1>This week's spellings, practised in ten minutes a day.</h1>
       <p class="lead">Type in the list that came home from school. Spelling Nest turns it into a short game your child plays on any phone, tablet or laptop, and tells you what has actually stuck.</p>
       <div class="cta-row">
         <a class="btn pink" href="/app">Open Spelling Nest</a>
         <a class="btn ghost" href="#how">See how it works</a>
       </div>
+      <p class="small" style="margin:14px 0 0;max-width:46ch">Fourteen days free. Your card is taken at sign up, and if you cancel before day 14 you pay nothing at all.</p>
       <div class="reassure">
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
@@ -570,7 +574,7 @@ try{
         </span>
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-          Nothing to install
+          Alongside the exercise book, not instead of it
         </span>
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
@@ -590,7 +594,7 @@ try{
     <div class="head center">
       <p class="eyebrow">Why it works</p>
       <h2>Not a spelling test. A week of small, useful practice.</h2>
-      <p class="lead">Spelling Nest takes the spelling list your child brings home from school and turns it into a short daily game, for primary school children aged 5 to 11. Most spelling lists get a quick read on Sunday evening and a test on Friday. Spelling Nest spreads the same list across the week and keeps score of the only thing that matters: which words your child can now spell without help.</p>
+      <p class="lead">Spelling Nest takes the spelling list your child brings home from school and turns it into a short daily game, for primary school children aged 5 to 11. Most spelling lists get a quick read on Sunday evening and a test on Friday. Spelling Nest spreads the same list across the week and keeps score of the only thing that matters: which words your child can now spell without help. You can see where your child is up to without sitting beside them, so by Thursday you know whether Friday is going to go well.</p>
     </div>
     <div class="grid g3">
       <div class="card">
@@ -718,13 +722,15 @@ try{
         <p class="amount">£3<span> a month</span></p>
         <p class="small">Cancel any time, in no more steps than it took to subscribe.</p>
       </div>
-      <div class="plan">
+      <div class="plan featured">
+        <p class="plan-flag">Best value</p>
         <h3>Yearly</h3>
         <p class="amount">£20<span> a year</span></p>
         <p><span class="saving">Save £16</span></p>
         <p class="small">That is twelve months for the price of about seven.</p>
       </div>
     </div>
+    <p class="lead center" style="margin-top:20px">Competing spelling apps charge per child; this one price covers all of them.</p>
     <div class="reassure" style="justify-content:center;margin-top:24px">
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every child in your family</span>
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>No adverts, no tracking</span>
@@ -732,6 +738,29 @@ try{
     </div>
   </div>
 </section>
+
+<!-- PARENT QUOTES. Ready to publish, deliberately commented out until real quotes exist.
+     Collect from the first paying families: first name, child's school year, one specific
+     thing that changed, and written consent to use it. No child's full name, no photograph
+     of a child, no school name. Replace the three blocks below and delete these comment
+     markers to go live.
+
+<section id="quotes" style="background:var(--surface-2)">
+  <div class="wrap">
+    <div class="head center">
+      <p class="eyebrow">From families using it</p>
+      <div class="goldrule"></div>
+      <h2>What changed at the kitchen table.</h2>
+    </div>
+    <div class="grid g3">
+      <div class="card"><p>QUOTE ONE</p><p class="small">NAME, parent of a child in YEAR</p></div>
+      <div class="card"><p>QUOTE TWO</p><p class="small">NAME, parent of a child in YEAR</p></div>
+      <div class="card"><p>QUOTE THREE</p><p class="small">NAME, parent of a child in YEAR</p></div>
+    </div>
+  </div>
+</section>
+
+-->
 
 <!-- PROGRESS BAND -->
 <section class="band">
@@ -790,7 +819,18 @@ try{
       </div>
     </div>
   </div>
-</section>
+
+    <div class="founder" style="max-width:720px;margin:34px auto 0;padding:26px 22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+      <!-- Photo slot. Add a square photo of Stuart at /assets/stuart.webp, about 320x320, then uncomment the line below.
+      <img src="/assets/stuart.webp" width="110" height="110" alt="Stuart Coussins, who makes Spelling Nest" style="border-radius:50%;flex:0 0 auto" loading="lazy">
+      -->
+      <div style="flex:1 1 260px">
+        <b>Made by Stuart Coussins, a parent and a qualified teacher</b>
+        <p style="margin:8px 0 0">It started with one child in this house who would do almost anything rather than sit down and write his spellings out three times. One person builds it, answers the emails and writes everything on this site.</p>
+        <p class="small" style="margin:12px 0 0"><a href="/about/">Who makes Spelling Nest</a> · <a href="/faq/">Questions parents ask</a> · <a href="https://www.instagram.com/spellingnest/" rel="me">Instagram</a> · <a href="https://www.facebook.com/spellingnest" rel="me">Facebook</a> · <a href="mailto:info@spellingnest.co.uk">info@spellingnest.co.uk</a></p>
+      </div>
+    </div>
+  </section>
 
 <!-- FAQ -->
 <section id="faq" style="background:var(--surface-2)">
@@ -914,6 +954,8 @@ try{
         <h4>Get in touch</h4>
         <ul>
           <li><a href="mailto:info@spellingnest.co.uk">info@spellingnest.co.uk</a></li>
+          <li><a href="https://www.instagram.com/spellingnest/" rel="me">Instagram</a></li>
+          <li><a href="https://www.facebook.com/spellingnest" rel="me">Facebook</a></li>
           <li><a href="privacy.html">Privacy notice</a></li>
           <li><a href="terms.html">Terms of sale</a></li>
         </ul>

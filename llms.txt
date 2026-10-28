@@ -1,0 +1,34 @@
+# Spelling Nest
+
+> Spelling Nest turns the weekly spelling list a child brings home from school into a short daily
+> game. A parent types the list in; the child practises it four ways in about ten minutes a day.
+> For children aged 5 to 11 in the United Kingdom. Browser based, nothing to install.
+
+Made by Stuart Coussins, a parent and a qualified teacher, trading as K&S Designs in England.
+No adverts and no advertising trackers. Last updated 28 October 2026.
+
+## What it costs
+- £3 a month or £20 a year, one price for every child in the family, not one child each.
+- Fourteen days free. A card is taken at sign up; cancel before day 14 and nothing is charged.
+- Cancelling leaves the account read only. Nothing is deleted unless the parent deletes it.
+
+## How it works
+- A grown up pastes the school's list into the app behind a four digit PIN.
+- Each lesson mixes four question types: unjumble, missing letters, look, cover, write, check,
+  and listen and spell. Answers are tapped on letter tiles, so spelling is tested, not typing.
+- A word counts as mastered only when it is spelled from sound, with no clues, on three
+  different days.
+
+## Key pages
+- https://spellingnest.co.uk/ : what it is, how it works, what it costs.
+- https://spellingnest.co.uk/look-cover-write-check/ : the method, step by step, for parents.
+- https://spellingnest.co.uk/how-spelling-sticks/ : why four kinds of practice, and what mastered means.
+- https://spellingnest.co.uk/faq/ : questions parents ask, including cost, data and devices.
+- https://spellingnest.co.uk/teachers/ : free printable spelling sheets with a QR code, made in the browser.
+- https://spellingnest.co.uk/about/ : who makes it.
+- https://spellingnest.co.uk/privacy.html and /terms.html : privacy notice and terms of sale.
+
+## What it is not
+- Not a school product. No school uses it yet, and there is no teacher dashboard.
+- Not a replacement for writing spellings by hand. It sits alongside the exercise book.
+- No claims are made about attainment or test results.
