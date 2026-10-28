@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -47,6 +47,17 @@ jobs:
           HEYCATCH_API_KEY: ${{ secrets.HEYCATCH_API_KEY }}
           SITE_ORIGIN: https://spellingnest.co.uk
         run: node scripts/build-blog.mjs --out _site
+
+      # Hero images are downloaded once, then kept in the repository so pages never depend on the image host.
+      - name: Save new blog images to the repository
+        run: |
+          if [ -n "$(git status --porcelain assets/blog 2>/dev/null)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add assets/blog
+            git commit -m "Add blog hero images"
+            git push || echo "Could not push images; they are still included in this deployment."
+          fi
 
       - uses: actions/configure-pages@v5
 
