@@ -20,6 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import sanitizeHtml from 'sanitize-html';
+import { loadNativePosts } from './native-posts.mjs';
 
 // ---------------------------------------------------------------- configuration
 
@@ -47,7 +48,7 @@ const BLOG_EMPTY = 'New articles are on their way. Please check back soon.';
 
 // Top level folders and files that are tooling, not part of the published site.
 const EXCLUDE_TOP = new Set([
-  '.git', '.github', '.gitignore', 'scripts', 'node_modules', '_site', '.blog-cache',
+  '.git', '.github', '.gitignore', 'content', 'scripts', 'node_modules', '_site', '.blog-cache',
   'package.json', 'package-lock.json',
 ]);
 
@@ -176,7 +177,7 @@ async function readCache() {
 }
 async function writeCache(articles) {
   await mkdir(CACHE, { recursive: true });
-  const slim = articles.map(({ content_markdown, ...rest }) => rest);
+  const slim = articles.filter((a) => !a._native).map(({ content_markdown, ...rest }) => rest);
   await writeFile(CACHE_FILE, JSON.stringify({ savedAt: new Date().toISOString(), articles: slim }));
 }
 
@@ -572,6 +573,10 @@ async function main() {
     warn(`Using ${cached.length} cached article(s) from the last good build.`);
     articles = cached;
   }
+
+  // Posts kept in the repository (content/blog/*.json). A HeyCatch article with the same slug wins.
+  const have = new Set(articles.map((a) => a.slug));
+  articles = articles.concat((await loadNativePosts(SRC, warn)).filter((n) => !have.has(n.slug)));
 
   articles = articles
     .filter((a) => a && a.title && validSlug(a.slug))
