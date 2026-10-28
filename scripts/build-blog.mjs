@@ -20,7 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import sanitizeHtml from 'sanitize-html';
-import { loadNativePosts } from './native-posts.mjs';
+import { loadNativePosts, prepareHeroImages } from './native-posts.mjs';
 
 // ---------------------------------------------------------------- configuration
 
@@ -91,7 +91,9 @@ function httpsUrl(v) {
 }
 const publishedOf = (a) => a.published_at || a.published || '';
 const updatedOf = (a) => a.updated_at || a.updated || publishedOf(a);
-const imageOf = (a) => httpsUrl(a.featured_image) || httpsUrl(a.hero_image_url);
+const localImage = (v) => (typeof v === 'string' && /^\/assets\/blog\/[A-Za-z0-9_-]+\.(webp|png|jpe?g)$/.test(v.trim()) ? v.trim() : '');
+const imageOf = (a) => httpsUrl(a.featured_image) || httpsUrl(a.hero_image_url) || localImage(a.hero_image_url);
+const absImage = (u) => (u.startsWith('/') ? `${ORIGIN}${u}` : u);
 const validSlug = (s) => typeof s === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(s) && s !== 'page';
 
 // ---------------------------------------------------------------- HeyCatch API
@@ -423,7 +425,7 @@ function postPage(a, blogLinks) {
     <p class="eyebrow"><a href="/blog/">Blog</a></p>
     <h1>${esc(a.title)}</h1>
     ${metaHtml}
-    ${img ? `<img class="post-hero-img" src="${esc(img)}" alt="" loading="eager">` : ''}
+    ${img ? `<img class="post-hero-img" src="${esc(img)}" alt="${esc(a.hero_image_alt || '')}" loading="eager">` : ''}
   </div>
 </section>
 
@@ -443,7 +445,7 @@ ${ctaSection()}`;
       description: a.meta_description || BLOG_DESCRIPTION,
       canonical,
       ogType: 'article',
-      image: img || DEFAULT_SOCIAL_IMAGE,
+      image: img ? absImage(img) : DEFAULT_SOCIAL_IMAGE,
       extra,
     }),
     jsonld: jsonLdFor(a, canonical),
@@ -576,7 +578,9 @@ async function main() {
 
   // Posts kept in the repository (content/blog/*.json). A HeyCatch article with the same slug wins.
   const have = new Set(articles.map((a) => a.slug));
-  articles = articles.concat((await loadNativePosts(SRC, warn)).filter((n) => !have.has(n.slug)));
+  const natives = (await loadNativePosts(SRC, warn)).filter((n) => !have.has(n.slug));
+  await prepareHeroImages(natives, SRC, OUT, warn);
+  articles = articles.concat(natives);
 
   articles = articles
     .filter((a) => a && a.title && validSlug(a.slug))
