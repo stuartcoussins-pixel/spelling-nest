@@ -405,6 +405,49 @@ a{color:inherit}
 <canvas id="confetti" hidden></canvas>
 <div id="toast" class="toast" hidden role="status"></div>
 
+<script>
+/* HeyCatch, part one of two. A synchronous stub so that calls made before the
+   module finishes loading are queued rather than lost. Replaced below. */
+window.__SN_HC__=(function(){var q=[];function p(n){return function(){q.push([n,arguments])}}
+return{__q:q,trackEvent:p('trackEvent'),setIdentity:p('setIdentity'),resetIdentity:p('resetIdentity'),
+optInCapturing:p('optInCapturing'),optOutCapturing:p('optOutCapturing')}})();
+</script>
+<script type="module">
+/* HeyCatch, part two of two. Single page app, so the default event batching is right.
+
+   The configuration below is deliberate and should not be loosened without
+   re-reading the privacy notice, which describes exactly this behaviour:
+
+     optOutCapturingByDefault  nothing is captured and NOTHING is written to
+                               browser storage until consent is given.
+     autocapture:false         no capture of clicks or form submissions, so
+                               nothing can read a word list or a child's
+                               nickname out of an input. Pageviews, page
+                               leaves and rage clicks are captured separately
+                               and are not affected by this setting.
+     maskAllText               captured elements carry no text content.
+     maskAllElementAttributes  captured elements carry no attributes.
+     respectDnt                the browser's Do Not Track signal is honoured.
+
+   Pinned to an exact version on purpose: the newest upload to npm is often an
+   internal -dev build that reports to a non production backend. */
+import { analytics } from '/assets/heycatch-0.8.3.js';
+try{
+  analytics.init({
+    projectKey: 'hck_pk_MH6FOvmkkenhjNbSsYzRxkWvVzPW8PUA',
+    install: { framework: 'web', agent: 'claude-code' },
+    optOutCapturingByDefault: true,
+    autocapture: false,
+    maskAllText: true,
+    maskAllElementAttributes: true,
+    respectDnt: true,
+    persistence: 'localStorage',
+  });
+  var queued = (window.__SN_HC__ && window.__SN_HC__.__q) || [];
+  window.__SN_HC__ = analytics;
+  queued.forEach(function(c){ try{ analytics[c[0]].apply(null, c[1]) }catch(e){} });
+}catch(e){ /* analytics must never stop the page working */ }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -447,6 +490,10 @@ function track(name,props,spellerId){
     if(user&&user.id){row.parent_id=user.id; if(spellerId) row.speller_id=spellerId}
     if(!sb){evQueue.push(row);return}
     sb.from('app_events').insert(row).then(function(){},function(){});
+    /* Mirrored to HeyCatch. Deliberately the same fixed taxonomy: no property
+       here carries a spelling word, a child's name, an email address or free
+       text, which is what makes sending it to a third party defensible. */
+    try{window.__SN_HC__&&window.__SN_HC__.trackEvent(name,Object.assign({app_version:APP_VERSION,platform:platformKind()},props||{}))}catch(e){}
   }catch(e){}
 }
 function flushEvents(){try{if(!sb||!evQueue.length)return;const rows=evQueue.splice(0,evQueue.length);sb.from('app_events').insert(rows).then(function(){},function(){})}catch(e){}}
@@ -751,10 +798,16 @@ async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
   try{track('signin_completed',{is_new:!!(session.user.created_at&&Date.now()-Date.parse(session.user.created_at)<180000)})}catch(e){}
+  /* The stable Supabase user id, never the email address, is the identity.
+     No email or name is passed as a property either: the dashboard does not
+     need them, and this is a children's service. */
+  try{window.__SN_HC__&&window.__SN_HC__.setIdentity(session.user.id,{},{signup_date:session.user.created_at||null})}catch(e){}
   try{
     if(location.hash&&/access_token|error/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
     if(v2.pending){await v2Commit(fam);return}
+    /* Consent already on record from a previous visit, so the gate opens. */
+    try{if(fam&&fam.consented_at&&window.__SN_HC__)window.__SN_HC__.optInCapturing()}catch(e){}
     if(!fam||!fam.consented_at){view='consent';renderChrome();renderView();return}
     await loadFamily(fam);
   }catch(e){view='loaderror';renderChrome();renderView()}
@@ -770,6 +823,7 @@ async function giveConsent(){
   try{
     await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
+    try{window.__SN_HC__&&window.__SN_HC__.optInCapturing()}catch(e){}
     track('consent_given',{});
     await loadFamily(fam);
   }catch(e){renderView()}
@@ -1159,6 +1213,7 @@ async function v2Commit(fam){
       if(sp&&sp.length){v2.pending=false;await loadFamily(fam);toast('Welcome back. You already have an account, so here it is.');return}
     }else{
       await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
+      try{window.__SN_HC__&&window.__SN_HC__.optInCapturing()}catch(e){}
       track('consent_given',{via:'first_run'});
       fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
     }
@@ -1718,7 +1773,7 @@ async function wipeFamily(){
   }
 
   wipeBusy=false; confirmWipe=false; toast(note);
-  sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
+  try{window.__SN_HC__&&(window.__SN_HC__.resetIdentity(),window.__SN_HC__.optOutCapturing())}catch(e){} sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
 }
 function toJpeg(file){
   return new Promise(resolve=>{
@@ -1817,7 +1872,7 @@ $('#view').addEventListener('click',e=>{
     case 'consent-go': if(consentTicked) giveConsent(); break;
     case 'sheet-for': takeSheet(t.dataset.pid); break;
     case 'sheet-skip': track('sheet_scanned',{words:(sheetImport&&sheetImport.words.length)||0,outcome:'not_now'}); sheetImport=null; afterAccount(); break;
-    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; pwFrom=''; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
+    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; pwFrom=''; try{window.__SN_HC__&&(window.__SN_HC__.resetIdentity(),window.__SN_HC__.optOutCapturing())}catch(e){} sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
     case 'wipe': confirmWipe=true; renderView(); break;
     case 'wipeno': confirmWipe=false; renderView(); break;
     case 'wipeyes': wipeFamily(); break;
