@@ -1,0 +1,15 @@
+{
+  "name": "spelling-nest-site",
+  "private": true,
+  "type": "module",
+  "description": "Build tooling for the Spelling Nest static site blog. Not published.",
+  "scripts": {
+    "build": "node scripts/build-blog.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "sanitize-html": "^2.13.0"
+  }
+}
