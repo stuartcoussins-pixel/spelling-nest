@@ -1,0 +1,67 @@
+name: Build and deploy site
+
+# Builds the static site, generates the blog from HeyCatch, and publishes to GitHub Pages.
+# One-off setup: Settings > Pages > Build and deployment > Source = GitHub Actions,
+# and Settings > Secrets and variables > Actions > New repository secret: HEYCATCH_API_KEY.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '*/15 * * * *'   # picks up new HeyCatch articles; GitHub's shortest practical interval
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.blog.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install --no-audit --no-fund
+
+      # Holds the last good article data, used only if HeyCatch is unreachable.
+      - uses: actions/cache@v4
+        with:
+          path: .blog-cache
+          key: blog-data-${{ github.run_id }}
+          restore-keys: blog-data-
+
+      - name: Build site and blog
+        id: blog
+        env:
+          HEYCATCH_API_KEY: ${{ secrets.HEYCATCH_API_KEY }}
+          SITE_ORIGIN: https://spellingnest.co.uk
+        run: node scripts/build-blog.mjs --out _site
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    # Scheduled runs only deploy when the articles actually changed.
+    if: github.event_name != 'schedule' || needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
