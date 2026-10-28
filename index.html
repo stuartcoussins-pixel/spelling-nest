@@ -382,7 +382,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     "Mastery requires three correct spellings from sound on three different days",
     "Several children under one grown up account",
     "Grown ups area behind a four digit PIN",
-    "No adverts and no third party tracking scripts"
+    "No adverts and no advertising trackers"
   ],
   "offers": [
     {
@@ -415,13 +415,93 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
   "url": "https://spellingnest.co.uk/",
   "email": "info@spellingnest.co.uk",
   "logo": "https://spellingnest.co.uk/assets/social.png",
-  "description": "Spelling Nest is made in the United Kingdom by one person, a parent who is also a qualified teacher. It carries no adverts and no third party tracking.",
+  "description": "Spelling Nest is made in the United Kingdom by one person, a parent who is also a qualified teacher. It carries no adverts and no advertising trackers.",
   "areaServed": { "@type": "Country", "name": "United Kingdom" },
   "sameAs": [
     "https://www.facebook.com/spellingnest",
     "https://www.instagram.com/spellingnest/"
   ]
 }
+</script>
+<script>
+/* HeyCatch, part one of two. A synchronous stub so that calls made before the
+   module finishes loading are queued rather than lost. Replaced below. */
+window.__SN_HC__=(function(){var q=[];function p(n){return function(){q.push([n,arguments])}}
+return{__q:q,trackEvent:p('trackEvent'),setIdentity:p('setIdentity'),resetIdentity:p('resetIdentity'),
+optInCapturing:p('optInCapturing'),optOutCapturing:p('optOutCapturing')}})();
+</script>
+<script type="module">
+/* HeyCatch, part two of two. Multi page site, so events are sent as they happen: a visitor can
+   navigate away inside a batching window, and iOS Safari in particular does
+   not reliably let the batch out as the page is torn down.
+
+   The configuration below is deliberate and should not be loosened without
+   re-reading the privacy notice, which describes exactly this behaviour:
+
+     optOutCapturingByDefault  nothing is captured and NOTHING is written to
+                               browser storage until consent is given.
+     autocapture:false         no capture of clicks or form submissions, so
+                               nothing can read a word list or a child's
+                               nickname out of an input. Pageviews, page
+                               leaves and rage clicks are captured separately
+                               and are not affected by this setting.
+     maskAllText               captured elements carry no text content.
+     maskAllElementAttributes  captured elements carry no attributes.
+     respectDnt                the browser's Do Not Track signal is honoured.
+
+   Pinned to an exact version on purpose: the newest upload to npm is often an
+   internal -dev build that reports to a non production backend. */
+import { analytics } from '/assets/heycatch-0.8.3.js';
+try{
+  analytics.init({
+    projectKey: 'hck_pk_MH6FOvmkkenhjNbSsYzRxkWvVzPW8PUA',
+    install: { framework: 'web', agent: 'claude-code' },
+    optOutCapturingByDefault: true,
+    autocapture: false,
+    maskAllText: true,
+    maskAllElementAttributes: true,
+    respectDnt: true,
+    requestBatching: false,
+  });
+  var queued = (window.__SN_HC__ && window.__SN_HC__.__q) || [];
+  window.__SN_HC__ = analytics;
+  queued.forEach(function(c){ try{ analytics[c[0]].apply(null, c[1]) }catch(e){} });
+}catch(e){ /* analytics must never stop the page working */ }
+</script>
+<script>
+/* The landing page has no account and therefore no consent screen, so the
+   analytics gate needs its own ask. Nothing is captured and nothing is stored
+   until a choice is made; declining is remembered just as acceptance is, so
+   the bar is shown once either way. */
+(function(){
+  var K='sn_hc_consent';
+  function decided(){try{return localStorage.getItem(K)}catch(e){return 'no'}}
+  function save(v){try{localStorage.setItem(K,v)}catch(e){}}
+  function apply(v){try{if(v==='yes'&&window.__SN_HC__)window.__SN_HC__.optInCapturing()}catch(e){}}
+  var d=decided();
+  if(d){apply(d);return}
+  document.addEventListener('DOMContentLoaded',function(){
+    var b=document.createElement('div');
+    b.setAttribute('role','region'); b.setAttribute('aria-label','Usage measurement');
+    b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;max-width:620px;margin:0 auto;'+
+      'background:#022140;color:#fff;border-radius:16px;padding:16px 18px;'+
+      'font:500 15px/1.5 Outfit,"Segoe UI",Helvetica,Arial,sans-serif;box-shadow:0 10px 30px rgba(2,33,64,.3)';
+    b.innerHTML='<p style="margin:0 0 12px">We would like to measure how this page is used, which involves '+
+      'a third party analytics service. It is not advertising and it is not required. '+
+      '<a href="/privacy.html" style="color:#E39A2A">What this means</a>.</p>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+      '<button type="button" data-hc="yes" style="flex:1 1 140px;border:0;border-radius:999px;padding:11px 18px;'+
+      'font:600 15px Outfit,sans-serif;background:#E39A2A;color:#022140;cursor:pointer">Yes, that is fine</button>'+
+      '<button type="button" data-hc="no" style="flex:1 1 140px;border:1px solid rgba(255,255,255,.45);'+
+      'border-radius:999px;padding:11px 18px;font:600 15px Outfit,sans-serif;background:transparent;'+
+      'color:#fff;cursor:pointer">No thank you</button></div>';
+    b.addEventListener('click',function(e){
+      var v=e.target&&e.target.getAttribute&&e.target.getAttribute('data-hc');
+      if(!v)return; save(v); apply(v); b.remove();
+    });
+    document.body.appendChild(b);
+  });
+})();
 </script>
 </head>
 <body>
@@ -687,7 +767,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 56px;color:var(--ink-soft
     <div class="grid g2" style="margin-top:22px">
       <div class="card">
         <h3>What we do not collect</h3>
-        <p>No children's full names, dates of birth, photos, location or contact details. No third party tracking or advertising scripts. Words are read aloud by your own device's built in voice, so what your child hears never leaves the device.</p>
+        <p>No children's full names, dates of birth, photos, location or contact details. No adverts and no advertising trackers. One analytics service, only if you agree, and never given your child's words or name. Words are read aloud by your own device's built in voice, so what your child hears never leaves the device.</p>
       </div>
       <div class="card">
         <h3>What we do collect</h3>
