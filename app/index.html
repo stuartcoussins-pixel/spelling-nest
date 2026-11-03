@@ -212,6 +212,13 @@ textarea{min-height:96px;resize:vertical}
 .toggle[aria-checked="true"]{background:var(--good)}
 .toggle[aria-checked="true"]::after{left:25px}
 .note{font-size:.88rem;color:var(--ink-soft);margin:0}
+/* The "what's new" note (F039). A gold wash, because gold is the only brand colour not
+   already carrying a meaning on the lesson screens: green is a right answer and red a
+   wrong one, so neither can be borrowed for an announcement. Both themes redefine
+   --gold-soft and --ink, so the pair contrasts in each. */
+.whatsnew{background:var(--gold-soft);display:grid;gap:8px;padding:16px 18px}
+.whatsnew h2{margin:0}
+.whatsnew p{margin:0;font-size:.92rem}
 .filebtn{position:relative}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 
@@ -490,7 +497,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.3';
+const APP_VERSION='2.4';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -1559,11 +1566,49 @@ function gateView(){
   const sub=pinFlow==='gate'?'Enter the 4 digit PIN to add spellings and change settings.':pinFlow==='change1'?(first?'This is the first time Grown ups has been opened, so choose a 4 digit PIN. It keeps word lists and settings away from little fingers.':'This PIN locks the Grown ups area on every profile.'):'Just to check it matches.';
   return `<section class="card gate">${owl('sleepy')}<h2 style="font-size:1.3rem">${title}</h2><p class="muted" style="margin:0;max-width:36ch">${sub}</p>${pinPad()}${pinFlow==='gate'?'<button class="ghost small" data-act="pin-forgot">Forgotten the PIN?</button>':changingPin?'<button class="ghost small" data-act="pin-cancel">Cancel</button>':''}</section>`;
 }
+/* The "what's new" note (F039). The app has no other way of telling a parent that
+   anything has changed: the only version signal on screen is the watermark in the
+   corner, so the photo reader added in 2.3 would be found by accident or not at all.
+
+   One entry at a time, and its key is the thing that is remembered. Give the next
+   release a new key and the note returns once for everybody; set CURRENT to null and
+   no note is shown at all.
+
+   The dismissal is kept in this browser and nowhere else. It is not analytics and it
+   is not sent anywhere, so it sits outside the consent gate and needs no migration and
+   no column grant. The cost is that a parent using a phone and a laptop sees it once on
+   each, which for a one off announcement is not worth a database column.
+
+   It is withheld from a read only family: a parent who cannot edit a word list at all
+   should not be told about a better way to add words. */
+const WHATSNEW_KEY='sn_whatsnew';
+const WHATSNEW={
+  key:'photo-2.3',
+  title:'Read the list from a photo',
+  body:'Rather than typing this week\u2019s words, you can point the camera at the sheet from school and let Spelling Nest read them. Look for \u201cRead a photo of the list\u201d under the words box. The photo stays on this device and is never sent anywhere.'
+};
+let whatsNewSeen='';
+try{whatsNewSeen=localStorage.getItem(WHATSNEW_KEY)||''}catch(e){whatsNewSeen=''}
+function whatsNewDue(){return !!(WHATSNEW&&WHATSNEW.key&&whatsNewSeen!==WHATSNEW.key)}
+function dismissWhatsNew(){
+  whatsNewSeen=WHATSNEW.key;
+  try{localStorage.setItem(WHATSNEW_KEY,WHATSNEW.key)}catch(e){}
+  renderView();
+}
+function whatsNewCard(){
+  if(!whatsNewDue()) return '';
+  return `<section class="card whatsnew">
+    <div class="eyebrow">What\u2019s new</div>
+    <h2 style="font-size:1.05rem">${esc(WHATSNEW.title)}</h2>
+    <p>${esc(WHATSNEW.body)}</p>
+    <div class="row"><button class="ghost small" data-act="whatsnew-ok">Got it</button></div>
+  </section>`;
+}
 function grownView(){
   const lists=Object.entries(S.lists.lists||{}).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const act=activeList(); const p=profile(); const nm=esc(p?p.name:'');
   const defTitle='Week of '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long'});
-  return `${subCard()}
+  return `${subCard()}${subLocked()?'':whatsNewCard()}
   ${subLocked()?`  <section class="card stack">
     <div><div class="eyebrow">Word lists for ${nm}</div><h2 style="font-size:1.25rem;margin-top:4px">Word lists are paused</h2></div>
     <p class="note" style="margin:0">Your saved lists are below and nothing has been removed. Adding and changing words starts again as soon as you subscribe.</p>
@@ -2039,6 +2084,7 @@ $('#view').addEventListener('click',e=>{
     case 'start': startLesson(); break;
     case 'hearall': {if(subLocked())break; const l=activeList(); if(l) sayAll(l.words); break}
     case 'gogrown': track('grownups_opened',{via:'button'},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
+    case 'whatsnew-ok': dismissWhatsNew(); break;
     case 'photo': {if(subLocked())break; const inp=$('#d-photo'); if(inp){inp.value='';inp.click()} break}
     case 'addtyped': {if(subLocked())break; const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
     case 'savelist': {if(subLocked())break;
