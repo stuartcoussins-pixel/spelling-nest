@@ -10,6 +10,27 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.4, 3 November 2026
+
+**A dismissible "what's new" note in the word list editor.** The app had no way of telling a
+parent that anything had changed: the only version signal on screen is the watermark in the
+bottom right corner, so the photo reader shipped in 2.3 would have been found by accident or
+not at all. A short gold note now appears above the editor, names what is new and where the
+button is, and goes away for good when the parent presses **Got it**.
+
+The dismissal is kept in that browser (`localStorage`, key `sn_whatsnew`) and nowhere else. It
+is not analytics and is sent nowhere, so it sits outside the consent gate and needed no
+migration and no column grant. The cost is that a parent using a phone and a laptop sees the
+note once on each. The mechanism is reusable: one entry with a key, so a new key brings the
+note back for everybody at the next release, and clearing the entry shows nothing. It is
+withheld from a read only family, because a parent who cannot edit a word list at all should
+not be told about a better way to add words. No analytics event was added on purpose, since
+`photo_read` volume before and after already answers whether the note worked.
+
+34 automated checks, including both colour themes and a browser with site data blocked.
+
+Commit `e7ac894`.
+
 ## 2.3, 3 November 2026
 
 **Read the spelling list from a photo.** A grown up adding the week's words can point the
@@ -26,7 +47,8 @@ Commits `42d271c` and `9240dca`.
 
 > **Correction, same day.** `42d271c` was built on the 27 September copy of the file rather
 > than the current one, which reverted the two commits of 28 October below. They were
-> missing from the live app for about twenty five minutes. `9240dca` rebuilt 2.3 on the
+> missing from the live app for about nine minutes (`42d271c` at 15:56 UTC, `9240dca` at
+> 16:05 UTC), plus however long the cache took to turn over. `9240dca` rebuilt 2.3 on the
 > correct base and restored both. The lesson, now a step in the deployment notes: fetch the
 > live file as the base for every build, never a local copy.
 
