@@ -7,40 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Spelling Nest">
 <meta name="format-detection" content="telephone=no">
-<meta name="description" content="Open Spelling Nest: add this week's spelling list, practise it four ways in about ten minutes a day, and see which words have stuck.">
-<title>Spelling Nest · weekly spelling practice app</title>
-<link rel="canonical" href="https://spellingnest.co.uk/app">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Spelling Nest">
-<meta property="og:title" content="Spelling Nest, the weekly spelling practice app">
-<meta property="og:description" content="Add this week's spelling list and practise it four ways in about ten minutes a day, on any phone, tablet or laptop.">
-<meta property="og:url" content="https://spellingnest.co.uk/app">
-<meta property="og:image" content="https://spellingnest.co.uk/assets/social.png">
-<meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "@id": "https://spellingnest.co.uk/app#app",
-  "name": "Spelling Nest",
-  "url": "https://spellingnest.co.uk/app",
-  "applicationCategory": "EducationalApplication",
-  "applicationSubCategory": "Spelling practice",
-  "operatingSystem": "Any modern web browser on phone, tablet or laptop",
-  "inLanguage": "en-GB",
-  "browserRequirements": "Requires JavaScript and an internet connection",
-  "description": "Spelling Nest turns the weekly spelling list a child brings home into a short daily game: four kinds of question, about ten minutes a day, for children aged 5 to 11.",
-  "publisher": {
-    "@id": "https://spellingnest.co.uk/#organization"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": "3.00",
-    "priceCurrency": "GBP",
-    "description": "£3 a month or £20 a year for the whole family, after a fourteen day free trial. A card is needed to start."
-  }
-}
-</script>
+<meta name="description" content="Weekly spelling practice for primary school children.">
+<title>Spelling Nest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Outfit:wght@400;500;600;700;800&display=swap">
@@ -437,49 +405,6 @@ a{color:inherit}
 <canvas id="confetti" hidden></canvas>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script>
-/* HeyCatch, part one of two. A synchronous stub so that calls made before the
-   module finishes loading are queued rather than lost. Replaced below. */
-window.__SN_HC__=(function(){var q=[];function p(n){return function(){q.push([n,arguments])}}
-return{__q:q,trackEvent:p('trackEvent'),setIdentity:p('setIdentity'),resetIdentity:p('resetIdentity'),
-optInCapturing:p('optInCapturing'),optOutCapturing:p('optOutCapturing')}})();
-</script>
-<script type="module">
-/* HeyCatch, part two of two. Single page app, so the default event batching is right.
-
-   The configuration below is deliberate and should not be loosened without
-   re-reading the privacy notice, which describes exactly this behaviour:
-
-     optOutCapturingByDefault  nothing is captured and NOTHING is written to
-                               browser storage until consent is given.
-     autocapture:false         no capture of clicks or form submissions, so
-                               nothing can read a word list or a child's
-                               nickname out of an input. Pageviews, page
-                               leaves and rage clicks are captured separately
-                               and are not affected by this setting.
-     maskAllText               captured elements carry no text content.
-     maskAllElementAttributes  captured elements carry no attributes.
-     respectDnt                the browser's Do Not Track signal is honoured.
-
-   Pinned to an exact version on purpose: the newest upload to npm is often an
-   internal -dev build that reports to a non production backend. */
-import { analytics } from '/assets/heycatch-0.8.3.js';
-try{
-  analytics.init({
-    projectKey: 'hck_pk_MH6FOvmkkenhjNbSsYzRxkWvVzPW8PUA',
-    install: { framework: 'web', agent: 'claude-code' },
-    optOutCapturingByDefault: true,
-    autocapture: false,
-    maskAllText: true,
-    maskAllElementAttributes: true,
-    respectDnt: true,
-    persistence: 'localStorage',
-  });
-  var queued = (window.__SN_HC__ && window.__SN_HC__.__q) || [];
-  window.__SN_HC__ = analytics;
-  queued.forEach(function(c){ try{ analytics[c[0]].apply(null, c[1]) }catch(e){} });
-}catch(e){ /* analytics must never stop the page working */ }
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -490,7 +415,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.2';
+const APP_VERSION='2.3';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -522,10 +447,6 @@ function track(name,props,spellerId){
     if(user&&user.id){row.parent_id=user.id; if(spellerId) row.speller_id=spellerId}
     if(!sb){evQueue.push(row);return}
     sb.from('app_events').insert(row).then(function(){},function(){});
-    /* Mirrored to HeyCatch. Deliberately the same fixed taxonomy: no property
-       here carries a spelling word, a child's name, an email address or free
-       text, which is what makes sending it to a third party defensible. */
-    try{window.__SN_HC__&&window.__SN_HC__.trackEvent(name,Object.assign({app_version:APP_VERSION,platform:platformKind()},props||{}))}catch(e){}
   }catch(e){}
 }
 function flushEvents(){try{if(!sb||!evQueue.length)return;const rows=evQueue.splice(0,evQueue.length);sb.from('app_events').insert(rows).then(function(){},function(){})}catch(e){}}
@@ -830,16 +751,10 @@ async function boot(session){
   if(user&&user.id===session.user.id) return;
   user=session.user; view='splash'; renderChrome(); renderView();
   try{track('signin_completed',{is_new:!!(session.user.created_at&&Date.now()-Date.parse(session.user.created_at)<180000)})}catch(e){}
-  /* The stable Supabase user id, never the email address, is the identity.
-     No email or name is passed as a property either: the dashboard does not
-     need them, and this is a children's service. */
-  try{window.__SN_HC__&&window.__SN_HC__.setIdentity(session.user.id,{},{signup_date:session.user.created_at||null})}catch(e){}
   try{
     if(location.hash&&/access_token|error/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
     if(v2.pending){await v2Commit(fam);return}
-    /* Consent already on record from a previous visit, so the gate opens. */
-    try{if(fam&&fam.consented_at&&window.__SN_HC__)window.__SN_HC__.optInCapturing()}catch(e){}
     if(!fam||!fam.consented_at){view='consent';renderChrome();renderView();return}
     await loadFamily(fam);
   }catch(e){view='loaderror';renderChrome();renderView()}
@@ -855,7 +770,6 @@ async function giveConsent(){
   try{
     await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
     const fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
-    try{window.__SN_HC__&&window.__SN_HC__.optInCapturing()}catch(e){}
     track('consent_given',{});
     await loadFamily(fam);
   }catch(e){renderView()}
@@ -1245,7 +1159,6 @@ async function v2Commit(fam){
       if(sp&&sp.length){v2.pending=false;await loadFamily(fam);toast('Welcome back. You already have an account, so here it is.');return}
     }else{
       await run(sb.from('families').upsert({parent_id:user.id,consented_at:new Date().toISOString(),sound:true}),'consent');
-      try{window.__SN_HC__&&window.__SN_HC__.optInCapturing()}catch(e){}
       track('consent_given',{via:'first_run'});
       fam=await run(sb.from('families').select('*').eq('parent_id',user.id).maybeSingle(),'account');
     }
@@ -1573,7 +1486,10 @@ function grownView(){
     <div><div class="eyebrow">Word lists for ${nm}</div><h2 style="font-size:1.25rem;margin-top:4px">${draft.id?'Edit word list':'Add this week’s words'}</h2></div>
     <div><label class="lbl" for="d-title">List name</label><input type="text" id="d-title" value="${esc(draft.title||defTitle)}"></div>
     <div><label class="lbl" for="d-text">Type or paste the words</label><textarea id="d-text" placeholder="charge, bulge, village"></textarea>
-      <div class="row" style="margin-top:8px"><button class="ghost small" data-act="addtyped">Add these words</button></div></div>
+      <div class="row" style="margin-top:8px"><button class="ghost small" data-act="addtyped">Add these words</button>
+        <button class="ghost small" data-act="photo" ${photoBusy?'disabled':''}>Read a photo of the list</button>
+        <input type="file" id="d-photo" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true"></div>
+      <p class="note" id="photo-msg">${esc(photoMsg||'New: point your camera at the sheet from school and we will try to read the words. The photo stays on this device and is never sent anywhere.')}</p></div>
     <div><label class="lbl" for="d-date">Day of the spelling test (optional)</label><input type="date" id="d-date" value="${esc(draft.testDate||'')}">
       <p class="note">${draft.testDate?esc(prettyDate(draft.testDate)):'Adding the test day shows a countdown on your child’s screen.'}</p></div>
     <div class="draft"><span class="lbl">Words in this list (${draft.words.length})</span>
@@ -1634,6 +1550,119 @@ function grownView(){
    Curly apostrophes from phones and word processors are folded to straight ones
    so a pasted list behaves exactly like a typed one. */
 function tidyApostrophes(t){return String(t).replace(/[\u2018\u2019\u02BC\u00B4\u0060]/g,"'")}
+/* Turning OCR text into a candidate word list.
+   Tuned on 3 November 2026 against real tesseract output for three printed sheet
+   layouts: an attempts table, a numbered list, and a days of the week table.
+
+   The strongest signal by far is that a spelling word sits alone on its line, while
+   headings, instructions and school names are lines of several words. That one rule
+   removes "Look, Say, Cover, Write, Check" while keeping "write" where it is a real
+   word on its own line, which a blocklist of words could never do. */
+const HEADING = new Set([
+  'spelling','spellings','attempt','attempts','name','date','week','weeks','test','tests',
+  'focus','school','primary','junior','infant','academy','list','lists','word','words',
+  'homework','class','group','term','autumn','spring','summer','year','monday','tuesday',
+  'wednesday','thursday','friday','saturday','sunday','mon','tue','tues','wed','weds',
+  'thur','thurs','fri','sat','sun','practice','practise','today','tomorrow'
+]);
+
+function wordsFromOcr(text){
+  const out = [];
+  for (let raw of String(text || '').split(/\r?\n/)) {
+    let line = raw.replace(/\s+/g, ' ').trim();
+    if (!line) continue;
+    line = line.replace(/^\s*\d{1,2}\s*[.)]\s*/, '');   // "1. word", "10) word"
+    if (/\d/.test(line)) continue;                 // dates, "Week 3", stray figures
+    if (line.indexOf(':') !== -1) continue;        // "Focus:", "Name:", "Date:"
+    line = line.replace(/^[^A-Za-z]+/, '').replace(/[^A-Za-z'’]+$/, '');
+    if (!line) continue;
+    const tokens = line.split(' ').filter(Boolean);
+    if (tokens.length > 2) continue;               // headings and instructions
+    for (const t of tokens) {
+      const w = t.toLowerCase()
+        .replace(/[‘’ʼ´`]/g, "'")
+        .replace(/[^a-z']/g, '')
+        .replace(/'{2,}/g, "'")
+        .replace(/^'+|'+$/g, '');
+      if (w.length < 2 || w.length > 16) continue;
+      if (!/[a-z]/.test(w)) continue;
+      if (HEADING.has(w)) continue;
+      if (out.indexOf(w) === -1) out.push(w);
+    }
+  }
+  return out.slice(0, 40);
+}
+
+/* Reading a photo of a school spelling sheet, entirely on the device (F001, option A).
+   Tesseract runs in the browser: the photo never leaves the phone, so there is no new
+   processor, nothing to store and nothing to add to the privacy notice. It is fetched
+   only when a parent first asks for it, because it is a few megabytes.
+
+   The image is redrawn through a canvas before it is read. That is mostly to make the
+   OCR faster, but it also re encodes the file, which drops the EXIF block and with it
+   the GPS coordinates of the kitchen the photo was taken in. */
+const TESS_SRC='https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js';
+let tessLoading=null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  if(tessLoading) return tessLoading;
+  tessLoading=new Promise((res,rej)=>{
+    const sc=document.createElement('script');
+    sc.src=TESS_SRC; sc.async=true;
+    sc.onload=()=>window.Tesseract?res(window.Tesseract):rej(new Error('reader did not load'));
+    sc.onerror=()=>rej(new Error('reader could not be downloaded'));
+    document.head.appendChild(sc);
+  });
+  return tessLoading;
+}
+function shrinkImage(file,maxEdge){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file); const img=new Image();
+    img.onload=()=>{
+      try{
+        const sc=Math.min(1,maxEdge/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*sc)), h=Math.max(1,Math.round(img.height*sc));
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL('image/jpeg',0.85));
+      }catch(e){URL.revokeObjectURL(url);rej(e)}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('that file is not a photo we can read'))};
+    img.src=url;
+  });
+}
+let photoMsg='', photoBusy=false;
+function setPhotoMsg(m,busy){photoMsg=m;photoBusy=!!busy;const el=$('#photo-msg');if(el)el.textContent=m;const b=$('[data-act="photo"]');if(b)b.disabled=!!busy}
+async function readPhoto(file){
+  if(photoBusy||!file) return;
+  const t0=Date.now(); let outcome='error', n=0, worker=null;
+  setPhotoMsg('Getting the reader ready…',true);
+  try{
+    const [T,dataUrl]=await Promise.all([loadTesseract(),shrinkImage(file,1600)]);
+    setPhotoMsg('Reading the photo…',true);
+    worker=await T.createWorker('eng',1,{logger:m=>{
+      if(m&&m.status==='recognizing text') setPhotoMsg('Reading the photo… '+Math.round((m.progress||0)*100)+'%',true);
+    }});
+    const out=await worker.recognize(dataUrl);
+    const found=wordsFromOcr(out&&out.data&&out.data.text);
+    n=found.length;
+    if(!n){ outcome='no_words'; setPhotoMsg('No words could be read from that photo. Try again with the sheet flat and well lit, or type them in below.',false); }
+    else{
+      let added=0;
+      found.forEach(w=>{if(draft.words.length<40&&!draft.words.includes(w)){draft.words.push(w);added++}});
+      outcome='ok';
+      photoMsg=added?('Found '+n+' '+(n===1?'word':'words')+'. Check them below and remove anything that is not a spelling.')
+                    :('Found '+n+', all of them already in the list.');
+      photoBusy=false; renderView();
+    }
+  }catch(e){
+    outcome='error';
+    setPhotoMsg('The photo could not be read: '+((e&&e.message)||'unknown problem')+'. You can type the words in below.',false);
+  }
+  try{if(worker&&worker.terminate) await worker.terminate()}catch(e){}
+  try{track('photo_read',{outcome:outcome,words:n,ms:Date.now()-t0})}catch(e){}
+}
 function normaliseWords(text){return [...new Set(tidyApostrophes(text).toLowerCase().split(/[\s,;.\/|]+/).map(w=>w.replace(/[^a-z']/g,'')).map(w=>w.replace(/'{2,}/g,"'").replace(/^'+|'+$/g,'')).filter(w=>w.length>0&&w.length<=16&&/[a-z]/.test(w)))]}
 /* ---------- sign in, 1.17 ----------
    Email and password, with a six digit code used only to prove an address: at sign up, and
@@ -1805,7 +1834,7 @@ async function wipeFamily(){
   }
 
   wipeBusy=false; confirmWipe=false; toast(note);
-  try{window.__SN_HC__&&(window.__SN_HC__.resetIdentity(),window.__SN_HC__.optOutCapturing())}catch(e){} sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
+  sb.auth.signOut().catch(()=>{}); user=null; resetState(); authSent=false; authStage='email'; authCode=''; view='signin'; renderChrome(); renderView();
 }
 function toJpeg(file){
   return new Promise(resolve=>{
@@ -1904,7 +1933,7 @@ $('#view').addEventListener('click',e=>{
     case 'consent-go': if(consentTicked) giveConsent(); break;
     case 'sheet-for': takeSheet(t.dataset.pid); break;
     case 'sheet-skip': track('sheet_scanned',{words:(sheetImport&&sheetImport.words.length)||0,outcome:'not_now'}); sheetImport=null; afterAccount(); break;
-    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; pwFrom=''; try{window.__SN_HC__&&(window.__SN_HC__.resetIdentity(),window.__SN_HC__.optOutCapturing())}catch(e){} sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
+    case 'signout': authSent=false; authStage='email'; authCode=''; authBusy=false; authMsg=''; consentTicked=false; codePurpose='bridge'; pwPending=''; pwFrom=''; sb.auth.signOut().catch(()=>{}); user=null; resetState(); view='signin'; renderChrome(); renderView(); break;
     case 'wipe': confirmWipe=true; renderView(); break;
     case 'wipeno': confirmWipe=false; renderView(); break;
     case 'wipeyes': wipeFamily(); break;
@@ -1923,6 +1952,7 @@ $('#view').addEventListener('click',e=>{
     case 'start': startLesson(); break;
     case 'hearall': {if(subLocked())break; const l=activeList(); if(l) sayAll(l.words); break}
     case 'gogrown': track('grownups_opened',{via:'button'},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
+    case 'photo': {if(subLocked())break; const inp=$('#d-photo'); if(inp){inp.value='';inp.click()} break}
     case 'addtyped': {if(subLocked())break; const ta=$('#d-text');keepTitle();const ws=normaliseWords(ta.value);ws.forEach(w=>{if(!draft.words.includes(w))draft.words.push(w)});renderView();break}
     case 'savelist': {if(subLocked())break;
       keepTitle(); if(!draft.words.length) break;
@@ -1975,6 +2005,7 @@ $('#view').addEventListener('change',async e=>{
   if(e.target.id==='p-year'&&p){p.year=e.target.value;persistAccount();return}
   if(e.target.id==='p-voice'){setVoiceChoice(e.target.value);track('voice_changed',{voice:e.target.value?'chosen':'auto'});say('giraffe');return}
   if(e.target.id==='d-title'){draft.title=e.target.value.trim();return}
+  if(e.target.id==='d-photo'){const f=e.target.files&&e.target.files[0];if(f)readPhoto(f);return}
   if(e.target.id==='consent-box'){consentTicked=e.target.checked;renderView();return}
   if(e.target.id==='sub-terms'){termsAgreed=e.target.checked;termsAt=termsAgreed?new Date().toISOString():null;subMsg='';renderView();return}
 });
