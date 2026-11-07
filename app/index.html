@@ -232,6 +232,9 @@ textarea{min-height:96px;resize:vertical}
 .bar i{display:block;height:100%;width:0;background:var(--pink);border-radius:999px;transition:width .35s ease}
 .hearts{display:flex;align-items:center;gap:4px;font-weight:800;color:var(--bad);font-variant-numeric:tabular-nums}
 .hearts svg{width:24px;height:24px}
+/* The practice test counts words rather than hearts, so it must not borrow the heart's
+   colour: var(--bad) is what a wrong answer looks like. */
+.wcount{font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
 .prompt{display:flex;align-items:center;gap:10px;margin-block:16px 8px}
 .prompt .owl{width:58px;height:58px;flex:none}
 .prompt h2{font-size:1.35rem;font-weight:800}
@@ -497,7 +500,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.4';
+const APP_VERSION='2.5';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -1511,6 +1514,8 @@ function playView(){
   const list=activeList();
   const cd=list&&list.testDate?countdownText(list.testDate):'';
   const stale=list&&list.testDate&&daysUntil(list.testDate)<0;
+  /* The test is tomorrow: F040 promotes the practice test for this one day. */
+  const eve=!!(list&&list.testDate&&daysUntil(list.testDate)===1);
   const nextCard=stale?`<section class="card stack" style="text-align:center">
       <h2 style="font-size:1.2rem">Time for new spellings</h2>
       <p class="muted" style="margin:0">The test on ${esc(prettyDate(list.testDate))} has passed. A grown up can add next week's words.</p>
@@ -1520,10 +1525,17 @@ function playView(){
       <div><div class="eyebrow">This week's words</div><h2 style="font-size:1.4rem;margin-top:4px">${esc(list.title)}</h2>
       ${cd?`<p class="note" style="margin-top:6px"><b>${esc(cd)}</b></p>`:''}</div>
       <div class="words">${list.words.map(w=>`<span class="chip ${S.progress.words[w]&&S.progress.words[w].mastered?'mastered':''}">${esc(w)}${pipsFor(w)}</span>`).join('')}</div>
-      <p class="note">Green dots show the days each word was spelled first time with no clues. Three dots means mastered. Words that sound like another word, such as there and their, are checked with look, cover, write, check instead of by sound.</p>
+      <p class="note">Green dots show the days each word was spelled right first time, with no clues. Three dots means mastered. Words such as there and their, and every word in a practice test, are checked by look, cover, write, check rather than by sound.</p>
       ${subLocked()?`<p class="note" style="margin:0"><b>Kit is having a rest.</b> Your grown up needs to sort something out, and then you can practise again.</p>
       <button class="ghost" data-act="gogrown" style="justify-content:center">Open Grown ups</button>`
+      :eve
+      /* The night before, the test is the main button and the lesson steps aside. The
+         countdown is already on screen directly above, so nothing extra explains why. */
+      ?`<button class="btn block pink" data-act="test" style="font-size:1.25rem;padding:18px">Practice test for tomorrow</button>
+      <button class="ghost" data-act="start" style="justify-content:center">${ICON.play}Start a lesson instead</button>
+      <button class="ghost" data-act="hearall" style="justify-content:center">${ICON.speaker}Hear all the words</button>`
       :`<button class="btn block pink" data-act="start" style="font-size:1.25rem;padding:18px">Start lesson</button>
+      <button class="ghost" data-act="test" style="justify-content:center">${ICON.medal}Practice test</button>
       <button class="ghost" data-act="hearall" style="justify-content:center">${ICON.speaker}Hear all the words</button>`}
     </section>`
     :`<section class="card stack" style="text-align:center">
@@ -1542,11 +1554,12 @@ function progressView(){
   const mastered=allWords.filter(w=>S.progress.words[w]&&S.progress.words[w].mastered);
   const working=allWords.filter(w=>!(S.progress.words[w]&&S.progress.words[w].mastered));
   const rows=(progTab==='mastered'?mastered:working).map(w=>{const s=S.progress.words[w];const n=s?s.days.length:0;return `<div class="wordrow"><span class="w">${esc(w)}</span><span class="row" style="gap:8px"><small>${progTab==='mastered'?'Mastered':n+' of 3 days'}</small>${pipsFor(w)}</span></div>`}).join('');
-  const empty=progTab==='mastered'?'Keep playing to master words. A word is mastered when it is spelled first time with no clues on three different days, from sound alone, or by look, cover, write, check for words that sound like another word.':'No words to work on yet.';
+  const empty=progTab==='mastered'?'Keep playing to master words. A word is mastered when it is spelled right first time, with no clues, on three different days. In a lesson that means from sound alone, or by look, cover, write, check for words that sound like another word. In a practice test every word is look, cover, write, check.':'No words to work on yet.';
   return `<section class="card"><div class="streak"><div class="flame">${ICON.flame}<b>${streak()}</b></div><div style="flex:1"><h2 style="font-size:1.3rem;margin-bottom:6px">Your streak</h2><div class="week">${week}</div></div></div></section>
   <div class="tiles3"><div class="stat"><b>${S.progress.xp}</b><span>Total XP</span></div><div class="stat"><b>${mastered.length}</b><span>Mastered</span></div><div class="stat"><b>${S.progress.lessons}</b><span>Lessons</span></div></div>
   <div class="seg" role="group" aria-label="Word groups"><button data-prog="working" aria-pressed="${progTab==='working'}">Working on</button><button data-prog="mastered" aria-pressed="${progTab==='mastered'}">Mastered words</button></div>
-  <section class="card" style="padding-block:8px">${rows||`<p class="muted" style="margin:12px 0">${empty}</p>`}</section>
+  <section class="card" style="padding-block:8px">${rows||`<p class="muted" style="margin:12px 0">${empty}</p>`}
+  ${rows?`<p class="note" style="margin:10px 2px 6px">A word is mastered when it is spelled right first time, with no clues, on three different days. In a lesson that means from sound alone, or by look, cover, write, check for words that sound like another word. In a practice test every word is look, cover, write, check.</p>`:''}</section>
   <section class="card" style="padding-block:12px 8px"><h2 style="font-size:1.2rem;margin-bottom:4px">Recent lessons</h2>${recentLessons()}</section>`;
 }
 function recentLessons(){
@@ -1583,9 +1596,9 @@ function gateView(){
    should not be told about a better way to add words. */
 const WHATSNEW_KEY='sn_whatsnew';
 const WHATSNEW={
-  key:'photo-2.3',
-  title:'Read the list from a photo',
-  body:'Rather than typing this week\u2019s words, you can point the camera at the sheet from school and let Spelling Nest read them. Look for \u201cRead a photo of the list\u201d under the words box. The photo stays on this device and is never sent anywhere.'
+  key:'test-2.5',
+  title:'A practice test for the night before',
+  body:'Your child can now take a practice test: every word on the list once, by look, cover, write, check, with no clues and no hearts, so the score is the real one. It is on their Play screen at any time, and the day before the spelling test it moves to the top on its own.'
 };
 let whatsNewSeen='';
 try{whatsNewSeen=localStorage.getItem(WHATSNEW_KEY)||''}catch(e){whatsNewSeen=''}
@@ -2082,6 +2095,7 @@ $('#view').addEventListener('click',e=>{
     case 'ob-finish': createProfile(); break;
     case 'addprofile': startOnboarding(true); break;
     case 'start': startLesson(); break;
+    case 'test': startTest(); break;
     case 'hearall': {if(subLocked())break; const l=activeList(); if(l) sayAll(l.words); break}
     case 'gogrown': track('grownups_opened',{via:'button'},S.pid); view='grown'; pinFlow=S.account.pin?'gate':'change1'; pinEntry=''; renderChrome(); renderView(); break;
     case 'whatsnew-ok': dismissWhatsNew(); break;
@@ -2180,14 +2194,37 @@ function pickType(prev,word){const last2=prev.slice(-2).map(q=>q.type);
   const set=isSoundalike(word)?TYPES.filter(x=>x[0]!=='hear'):TYPES;
   let t;let guard=0;do{const total=set.reduce((s,x)=>s+x[1],0);let r=Math.random()*total;t=set.find(x=>(r-=x[1])<0)[0]}while(guard++<10&&last2.length===2&&last2[0]===t&&last2[1]===t);return t}
 function weightedPick(words,avoid){const pool=words.filter(w=>w!==avoid||words.length===1);const ws=pool.map(w=>S.progress.words[w]&&S.progress.words[w].mastered?1:3);let r=Math.random()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){if((r-=ws[i])<0)return pool[i]}return pool[0]}
+/* The practice test (F040). Every word on the list once, in a shuffled order, all of them
+   through Look, cover, write, check: the method a school sheet asks for and the one a family
+   already recognises from the grown up round.
+
+   What it deliberately does NOT do, agreed with Stuart on 7 November 2026: no clues, no
+   hearts, and no second go at a missed word. The clue timers were never part of Look, cover,
+   write, check anyway, they belong to Listen and spell, so that one costs nothing. The other
+   two are switched off below, because a score that mixes words a child knew with words the
+   app told them is not a score, and a test that stops early because a five year old ran out
+   of hearts measures stamina rather than spelling.
+
+   Hearts are left at five rather than zeroed. Several places treat hearts<=0 as "the lesson
+   ended badly", and a test that began on zero would trip every one of them. */
+function startTest(){
+  if(subLocked()) return;
+  const list=activeList(); if(!list||!list.words.length) return;
+  const words=shuffle(list.words.slice());
+  const qs=words.map(w=>({word:w,type:'lcwc'}));
+  Object.assign(lesson,{active:true,qs,idx:0,hearts:5,xp:0,right:0,wrong:0,requeued:new Set(),newMastered:[],timers:[],results:[],started:Date.now(),listTitle:list.title,practice:false,test:true,words:words.slice()});
+  track('lesson_started',{practice:false,mode:'test',word_count:words.length,questions:qs.length},S.pid);
+  $('.app').hidden=true; $('.tabbar').hidden=true; $('#lesson').hidden=false; window.scrollTo(0,0);
+  renderQuestion();
+}
 function startLesson(only){
   if(subLocked()) return;
   const list=activeList(); if(!list||!list.words.length) return;
   const words=(only&&only.length)?only.slice():list.words; const n=(only&&only.length)?Math.max(words.length*2,4):Math.min(12,Math.max(6,words.length));
   const order=shuffle(words.slice()); const qs=[];
   for(let i=0;i<n;i++){const w=i<order.length?order[i]:weightedPick(words,qs.length?qs[qs.length-1].word:null);qs.push({word:w,type:pickType(qs,w)})}
-  Object.assign(lesson,{active:true,qs,idx:0,hearts:5,xp:0,right:0,wrong:0,requeued:new Set(),newMastered:[],timers:[],results:[],started:Date.now(),listTitle:list.title,practice:!!(only&&only.length),words:words.slice()});
-  track('lesson_started',{practice:!!lesson.practice,word_count:words.length,questions:qs.length},S.pid);
+  Object.assign(lesson,{active:true,qs,idx:0,hearts:5,xp:0,right:0,wrong:0,requeued:new Set(),newMastered:[],timers:[],results:[],started:Date.now(),listTitle:list.title,practice:!!(only&&only.length),test:false,words:words.slice()});
+  track('lesson_started',{practice:!!lesson.practice,mode:'lesson',word_count:words.length,questions:qs.length},S.pid);
   $('.app').hidden=true; $('.tabbar').hidden=true; $('#lesson').hidden=false; window.scrollTo(0,0);
   renderQuestion();
 }
@@ -2195,7 +2232,7 @@ function clearTimers(){lesson.timers.forEach(clearTimeout);lesson.timers=[]}
 const cur=()=>lesson.qs[lesson.idx];
 function shell(title,sub,mood){
   const pct=Math.round(100*lesson.idx/lesson.qs.length);
-  $('#lesson-inner').innerHTML=`<div class="lhead"><button class="xbtn" data-l="quit" aria-label="Stop lesson">${ICON.x}</button><div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="${pct} per cent through this lesson"><i style="width:${pct}%"></i></div><span class="hearts" aria-label="${lesson.hearts} hearts">${ICON.heart}${lesson.hearts}</span></div>
+  $('#lesson-inner').innerHTML=`<div class="lhead"><button class="xbtn" data-l="quit" aria-label="Stop lesson">${ICON.x}</button><div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="${pct} per cent through this lesson"><i style="width:${pct}%"></i></div>${lesson.test?`<span class="wcount" aria-label="Word ${Math.min(lesson.idx+1,lesson.qs.length)} of ${lesson.qs.length}">${Math.min(lesson.idx+1,lesson.qs.length)} of ${lesson.qs.length}</span>`:`<span class="hearts" aria-label="${lesson.hearts} hearts">${ICON.heart}${lesson.hearts}</span>`}</div>
   <div class="prompt">${owl(mood||'')}<div><h2>${title}</h2><p>${sub}</p></div></div>
   <div class="lbody" id="lbody"></div>
   <div class="laction" id="laction"><div id="feedback" aria-live="polite"></div><div class="listen" id="listenrow"><button class="ghost" data-l="hear">${ICON.speaker}Hear it</button><button class="ghost" data-l="slow">${ICON.slow}Slowly</button>${(lesson.qs&&lesson.qs[lesson.idx]&&sentenceFor(lesson.qs[lesson.idx].word))?`<button class="ghost" data-l="sentence">${ICON.speaker}In a sentence</button>`:''}</div><button class="btn block" id="mainbtn" data-l="main" disabled>Check</button></div>`;
@@ -2322,16 +2359,21 @@ function check(){
   let gain=0;
   if(ok){
     stat.correct++; gain=q.hinted?5:(q.retry?6:10); lesson.xp+=gain; lesson.right++;
+    /* In a lesson a word is mastered through its own type: sound alone, or Look, cover,
+       write, check for the words sound cannot tell apart. A practice test is Look, cover,
+       write, check for every word, and it counts, which is why the wording on the Play and
+       Progress screens says so rather than claiming sound alone. */
     const masteryType=isSoundalike(q.word)?'lcwc':'hear';
-    if(q.type===masteryType&&!q.hinted&&!q.retry){const t=today();if(!stat.days.includes(t))stat.days.push(t);if(!stat.mastered&&stat.days.length>=3){stat.mastered=true;lesson.newMastered.push(q.word)}}
+    if((q.type===masteryType||(lesson.test&&q.type==='lcwc'))&&!q.hinted&&!q.retry){const t=today();if(!stat.days.includes(t))stat.days.push(t);if(!stat.mastered&&stat.days.length>=3){stat.mastered=true;lesson.newMastered.push(q.word)}}
     if(q.type==='hear'&&!q.hinted&&!q.retry){S.progress.cleanHear=(S.progress.cleanHear||0)+1}
     sfx.good();
   } else {
-    lesson.wrong++; lesson.hearts=Math.max(0,lesson.hearts-1); sfx.bad();
-    if(!lesson.requeued.has(q.word)){lesson.requeued.add(q.word);lesson.qs.splice(Math.min(lesson.qs.length,lesson.idx+3),0,{word:q.word,type:'lcwc',retry:true})}
+    lesson.wrong++; if(!lesson.test)lesson.hearts=Math.max(0,lesson.hearts-1); sfx.bad();
+    if(!lesson.test&&!lesson.requeued.has(q.word)){lesson.requeued.add(q.word);lesson.qs.splice(Math.min(lesson.qs.length,lesson.idx+3),0,{word:q.word,type:'lcwc',retry:true})}
   }
   try{
-    $('.hearts').innerHTML=ICON.heart+lesson.hearts;
+    if(!lesson.test)$('.hearts').innerHTML=ICON.heart+lesson.hearts;
+    else{const wc=$('.wcount');if(wc){wc.textContent=Math.min(lesson.idx+1,lesson.qs.length)+' of '+lesson.qs.length}}
     $('.bar i').style.width=Math.round(100*(lesson.idx+1)/lesson.qs.length)+'%';
     const ow=$('.prompt .owl'); if(ow) ow.outerHTML=owl(ok?'cheer':'sleepy');
   }catch(e){}
@@ -2377,8 +2419,8 @@ function endLesson(reason){
     if(sum.total){const entry={at:Date.now(),list:String(lesson.listTitle||'').slice(0,80),practice:!!lesson.practice,reason,score:sum.first,total:sum.total,stars,xp:lesson.xp+bonus,secs,missed:sum.rows.filter(r=>r.status==='missed').map(r=>r.word)};P.history.push(entry);saveHistory(entry)}
     if(P.history.length>60) P.history=P.history.slice(-60);
     newB=awardBadges({perfect:completed&&lesson.wrong===0});
-    if(completed) track('lesson_completed',{score:sum.first,total:sum.total,stars:stars,seconds:secs,practice:!!lesson.practice},S.pid);
-    else track('lesson_abandoned',{attempted:lesson.idx,total:sum.total,seconds:secs,reason:reason},S.pid);
+    if(completed) track('lesson_completed',{score:sum.first,total:sum.total,stars:stars,seconds:secs,practice:!!lesson.practice,mode:lesson.test?'test':'lesson'},S.pid);
+    else track('lesson_abandoned',{attempted:lesson.idx,total:sum.total,seconds:secs,reason:reason,mode:lesson.test?'test':'lesson'},S.pid);
     newB.forEach(function(b){track('badge_earned',{badge:b.id},S.pid)});
     persistProgress();
   }catch(err){ toast('Your score could not be saved: '+(err&&err.message||err)); }
@@ -2394,7 +2436,7 @@ function endLesson(reason){
     ${owl(completed&&stars>=2?'cheer':completed?'':'sleepy')}
     ${completed?starHTML(stars,52):''}
     <h2>${title}</h2>
-    ${sum.total?`<div class="bigscore"><b>${sum.first}</b><span>out of ${sum.total}</span></div><p class="muted" style="margin:0">words spelled right first time${lesson.practice?' in this practice':''}</p>`:`<p class="muted" style="margin:0">No words were answered.</p>`}
+    ${sum.total?`<div class="bigscore"><b>${sum.first}</b><span>out of ${sum.total}</span></div><p class="muted" style="margin:0">words spelled right first time${lesson.test?' in your practice test':lesson.practice?' in this practice':''}</p>`:`<p class="muted" style="margin:0">No words were answered.</p>`}
     <p style="margin:0;max-width:36ch;font-weight:600">${msg}</p>
     <div class="endstats"><div class="stat"><b>${lesson.xp+bonus}</b><span>XP earned</span></div><div class="stat"><b>${fmtTime(secs*1000)}</b><span>Time</span></div><div class="stat"><b>${streak()}</b><span>Day streak</span></div></div>
     ${sum.total?`<section class="card scorecard" style="width:100%;text-align:left"><div class="eyebrow" style="margin-bottom:6px">Word by word</div>${rows}</section>`:''}
