@@ -10,6 +10,34 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.5, 7 November 2026
+
+**A practice test.** Every word on the list exactly once, in a shuffled order, all of them
+through Look, cover, write, check. It sits as a quieter second button on the child's Play
+screen at all times, and on the single day before the spelling test it becomes the main
+button above the lesson, with the countdown already on screen explaining why.
+
+What it deliberately does not do: no clues, no hearts, and no second go at a missed word. The
+clue timers were never part of Look, cover, write, check anyway, so only the other two needed
+switching off. A score that mixes words a child knew with words the app told them is not a
+score, and a test that stops early because a five year old ran out of hearts measures stamina
+rather than spelling. Hear it and Slowly stay, because saying the word aloud is exactly what a
+teacher does in a real test.
+
+A word spelled right first time in the test earns one of its three mastery days, on the same
+rule as a lesson. That made the old wording on the Play and Progress screens untrue, since it
+said mastery came "from sound alone", so both screens were reworded. The Progress screen also
+now shows that definition when the word list has words in it; until this release it appeared
+only when the list was empty.
+
+No migration and no new event name: `lesson_started`, `lesson_completed` and `lesson_abandoned`
+gained a `mode` property of `lesson` or `test`. The `lesson_history` table is unchanged, so the
+database does not yet distinguish a test from a lesson.
+
+The what's new note from 2.4 carries a new key, so it returns once to tell families about it.
+
+38 automated checks for the test, with the 54 from 2.3 and 2.4 re run against the same file.
+
 ## 2.4, 3 November 2026
 
 **A dismissible "what's new" note in the word list editor.** The app had no way of telling a
