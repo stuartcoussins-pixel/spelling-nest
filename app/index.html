@@ -505,7 +505,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.7';
+const APP_VERSION='2.8';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -680,15 +680,30 @@ async function afterCheckout(){
   }
   if(sub.reason==='paid') toast('Thank you. Your subscription is active.');
 }
+/* Whether this family will get the free fortnight (2.8, 15 November 2026). It mirrors the rule
+   in create-checkout-session exactly, because that function is what actually decides: a trial
+   only for a family whose status is none or free_beta and who has never had a subscription
+   period. Everyone else pays on the day they subscribe. Until 2.8 the box a returning family
+   ticked to agree to the terms told them their card would be charged "when the free fortnight
+   ends", a fortnight they were never going to get. The terms of sale, section 4, already say
+   the trial is offered once per family; this makes the screen say the same thing. If the rule
+   in the function ever changes, this has to change with it. */
+function trialOwed(){
+  return (sub.status==null||sub.status==='none'||sub.status==='free_beta')&&!sub.periodEnds;
+}
 function subChoose(){
   const dis=(!ukConfirmed||!termsAgreed||subBusy)?'disabled':'';
   return `<div class="switch"><span><b>My billing address is in the United Kingdom</b><br><span class="note">Spelling Nest is sold in the United Kingdom only for now. If you are elsewhere, please email info@spellingnest.co.uk and we will let you know when that changes.</span></span>
     <button class="toggle" role="switch" aria-checked="${ukConfirmed}" data-act="sub-uk" aria-label="My billing address is in the United Kingdom"></button></div>
-  <label class="consent" for="sub-terms"><input type="checkbox" id="sub-terms" ${termsAgreed?'checked':''}><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a>. I want my subscription to start straight away, and I understand that my card will be charged when the free fortnight ends unless I cancel before then.</span></label>
+  <label class="consent" for="sub-terms"><input type="checkbox" id="sub-terms" ${termsAgreed?'checked':''}><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">terms of sale</a>. ${trialOwed()
+            ?'I want my subscription to start straight away, and I understand that my card will be charged when the free fortnight ends unless I cancel before then.'
+            :'I want my subscription to start straight away. I understand that, because I have subscribed before, there is no free fortnight this time: my card will be charged today, and I can still cancel within 14 days for a full refund.'}</span></label>
   <div class="row"><button class="btn" data-act="sub-annual" ${dis}>${subBusy?'Opening…':'£20 a year'}</button>
     <button class="ghost" data-act="sub-monthly" ${dis}>£3 a month</button></div>
   <p class="note" style="margin:0">Payment is handled by Stripe and your card details never reach Spelling Nest. It renews automatically until you cancel, and you can cancel from this page at any time, in no more steps than it took to subscribe.</p>
-  <p class="note" style="margin:0">Fourteen days free on your first subscription. We email you before the first payment is due.</p>
+  <p class="note" style="margin:0">${trialOwed()
+    ?'Fourteen days free on your first subscription. We email you before the first payment is due.'
+    :'The free fortnight is for a first subscription only, so this time the first payment is taken today. Cancel within 14 days and it is refunded in full.'}</p>
   ${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}`;
 }
 function subCard(){
