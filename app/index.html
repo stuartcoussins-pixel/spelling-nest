@@ -219,6 +219,10 @@ textarea{min-height:96px;resize:vertical}
 .whatsnew{background:var(--gold-soft);display:grid;gap:8px;padding:16px 18px}
 .whatsnew h2{margin:0}
 .whatsnew p{margin:0;font-size:.92rem}
+/* The failed payment card (2.6). The gold wash marks something the grown up should act on
+   without borrowing --bad, which in this app means a wrong answer. Both themes redefine
+   --gold-soft and --ink, so the pair contrasts in each. */
+.payfail{background:var(--gold-soft)}
 .filebtn{position:relative}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 
@@ -500,7 +504,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.5';
+const APP_VERSION='2.6';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -692,7 +696,29 @@ function subCard(){
     <p class="note" style="margin:0">Your family joined while Spelling Nest was in beta, so your first year is on us. Thank you for helping us test it.${sub.freeUntil?` Your free year runs until <b>${esc(prettyDate(dpart(sub.freeUntil)))}</b>, and we will tell you well before then.`:''}</p>
     <p class="note" style="margin:0">There is nothing to pay and nothing to set up. You do not need to do anything today.</p></section>`;
   const manage=(sub.status&&sub.status!=='none')?`<button class="ghost small" data-act="sub-manage" ${subBusy?'disabled':''}>Manage subscription</button>`:'';
-  const resume=`<button class="small" data-act="sub-resume" ${subBusy?'disabled':''}>Keep my subscription</button>`;
+  const resume=`<button class="btn" data-act="sub-resume" ${subBusy?'disabled':''}>Keep my subscription</button>`;
+  /* A failed payment (health check Run 11, 15 November 2026). Stripe marks the subscription
+     past_due and keeps trying the card, and the family keeps practising until the end of the
+     period they already have. Until 2.6 this state fell into the cancelled branch below and
+     told the parent "You have cancelled, so there is nothing more to pay", which was untrue on
+     both counts: they had not cancelled, and Stripe was still trying to take the payment.
+
+     Every sentence here is one the system actually honours. Nothing has been taken: a declined
+     charge takes nothing. Practice carries on to period_ends_at: sn_subscription_state()
+     returns can_practise true for past_due until then. Lessons pause after it: the same
+     function falls through to read only once that date passes, whatever Stripe then does.
+     It says nothing about when Stripe will retry, because that is a Stripe setting and is not
+     visible from here.
+
+     Shown in Grown ups only, behind the PIN, like every other plan card. The child's screen
+     never mentions money. */
+  if(sub.status==='past_due'){
+    const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
+    return `<section class="card stack payfail">${head('Your last payment did not go through')}
+      <p class="note" style="margin:0">Your card was declined when your subscription renewed, so nothing has been taken. Stripe, who handle payments for Spelling Nest, will try the card again.</p>
+      <p class="note" style="margin:0">${ends?`Practice carries on as normal until <b>${esc(ends)}</b>. `:''}Updating your card is the quickest way to keep everything running. If a payment still cannot be taken${ends?' by then':''}, lessons pause, and everything your family has done stays here to look at.</p>
+      <div class="row"><button class="btn" data-act="sub-manage" ${subBusy?'disabled':''}>Update your card</button></div>${subMsg?`<p class="err">${esc(subMsg)}</p>`:''}</section>`;
+  }
   if(sub.reason==='paid'||sub.reason==='paid_until_period_end'){
     const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
     const stopping=sub.reason!=='paid'||sub.cancelling;
@@ -972,6 +998,29 @@ function setVoiceChoice(name){
   voiceChoice=name||'';
   try{name?localStorage.setItem(VOICE_KEY,name):localStorage.removeItem(VOICE_KEY)}catch(e){}
   pickVoice();
+}
+/* voice_changed, rebuilt in 2.6 (health check SN-033). It used to fire on every change of
+   the select, so a parent auditioning voices by tapping down the list produced one event per
+   tap (48 in three minutes on 12 November), and it recorded only "chosen" or "auto", so the
+   one question it exists to answer, which voice a family settles on, could never be answered.
+
+   Now it fires once, four seconds after the last change, and only if the voice the parent
+   ends on differs from the one they started with. It records the voice's name and language,
+   which come from the device's own list of system voices and say nothing about the family.
+   The voice key keeps its old values so the 88 events recorded before this stay comparable. */
+let voiceSettleT=null, voiceBurstFrom=null, voiceBurstTaps=0;
+function noteVoiceChange(){
+  if(voiceBurstFrom===null) voiceBurstFrom=voiceChoice;
+  voiceBurstTaps++;
+  clearTimeout(voiceSettleT);
+  voiceSettleT=setTimeout(()=>{
+    const from=voiceBurstFrom, taps=voiceBurstTaps;
+    voiceBurstFrom=null; voiceBurstTaps=0;
+    if(voiceChoice===from) return;
+    const v=voice||null;
+    track('voice_changed',{voice:voiceChoice?'chosen':'auto',
+      name:v?String(v.name||'').slice(0,60):null,lang:v?String(v.lang||'').slice(0,12):null,auditioned:taps});
+  },4000);
 }
 const SELCSS='style="width:100%;font:inherit;padding:11px 13px;border-radius:14px;border:1.5px solid var(--line);background:var(--ground);color:var(--ink)"';
 function voiceSelectHTML(){
@@ -2150,7 +2199,7 @@ $('#view').addEventListener('change',async e=>{
   const p=profile();
   if(e.target.id==='p-name'&&p){const v=e.target.value.trim().slice(0,20);if(v){p.name=v;persistAccount();renderChrome()}return}
   if(e.target.id==='p-year'&&p){p.year=e.target.value;persistAccount();return}
-  if(e.target.id==='p-voice'){setVoiceChoice(e.target.value);track('voice_changed',{voice:e.target.value?'chosen':'auto'});say('giraffe');return}
+  if(e.target.id==='p-voice'){noteVoiceChange();setVoiceChoice(e.target.value);say('giraffe');return}
   if(e.target.id==='d-title'){draft.title=e.target.value.trim();return}
   if(e.target.id==='d-photo'){const f=e.target.files&&e.target.files[0];if(f)readPhoto(f);return}
   if(e.target.id==='consent-box'){consentTicked=e.target.checked;renderView();return}
