@@ -505,7 +505,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.8';
+const APP_VERSION='2.9';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -637,7 +637,7 @@ async function startCheckout(plan){
   subBusy=true; subMsg=''; renderView();
   try{
     track('checkout_started',{plan:plan});
-    const j=await fnCall('create-checkout-session',{plan:plan,terms_version:'1.0',terms_accepted_at:termsAt||new Date().toISOString()});
+    const j=await fnCall('create-checkout-session',{plan:plan,terms_version:'1.1',terms_accepted_at:termsAt||new Date().toISOString()});
     if(j&&j.url){location.href=j.url;return}
     subMsg=(j&&j.error)||'We could not open the payment page. Please try again in a moment.';
   }catch(e){ subMsg='We could not open the payment page. Please try again in a moment.' }
