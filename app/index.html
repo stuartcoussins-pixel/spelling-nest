@@ -223,6 +223,7 @@ textarea{min-height:96px;resize:vertical}
    without borrowing --bad, which in this app means a wrong answer. Both themes redefine
    --gold-soft and --ink, so the pair contrasts in each. */
 .payfail{background:var(--gold-soft)}
+.payfail .countdown{margin:0;font-size:1.15rem;color:var(--ink)}
 .filebtn{position:relative}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 
@@ -504,7 +505,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const dayStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const APP_VERSION='2.6';
+const APP_VERSION='2.7';
 /* The version is watermarked in the bottom right corner of every screen, so a screenshot from a
    parent or tester always says which build it came from. Set from APP_VERSION, never typed twice. */
 const APP_BUILD_LABEL='v'+APP_VERSION;
@@ -612,10 +613,11 @@ async function loadSubscription(){
     const d=data||{};
     sub={loaded:true,status:d.status||null,can:d.can_practise!==false,reason:d.reason||'',
          trialStarts:d.trial_starts_at||null,trialEnds:d.trial_ends_at||null,periodEnds:d.period_ends_at||null,
-         freeUntil:d.free_until||null,cancelling:d.cancels_at_period_end===true,cancelledAt:d.cancelled_at||null};
+         freeUntil:d.free_until||null,cancelling:d.cancels_at_period_end===true,cancelledAt:d.cancelled_at||null,
+         graceEnds:d.grace_ends_at||null,failedAt:d.payment_failed_at||null};
   }catch(e){
     /* Fail open. A child is never stopped from practising because a check failed. */
-    sub={loaded:true,status:null,can:true,reason:'check_failed',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null,cancelling:false,cancelledAt:null};
+    sub={loaded:true,status:null,can:true,reason:'check_failed',trialStarts:null,trialEnds:null,periodEnds:null,freeUntil:null,cancelling:false,cancelledAt:null,graceEnds:null,failedAt:null};
   }
 }
 function daysLeft(iso){ if(!iso) return null; const ms=Date.parse(iso)-Date.now(); if(isNaN(ms)) return null; return Math.max(0,Math.ceil(ms/86400000)) }
@@ -712,6 +714,45 @@ function subCard(){
 
      Shown in Grown ups only, behind the PIN, like every other plan card. The child's screen
      never mentions money. */
+  /* The failed payment countdown (2.7, 15 November 2026). Stuart asked for the declined card
+     to be flagged here, in Grown ups, with a countdown in days to when the subscription is
+     cancelled, on a timeline that cannot cost card network fees. The timeline is Stripe's own
+     retry window, eight attempts in fourteen days, and sn_subscription_state() returns its end
+     as grace_ends_at; see migration v17 for why that window is fee safe and why the two numbers
+     must be changed together.
+
+     Three states, each saying only what the system will actually do:
+       payment_failed        inside the window: practice carries on, the countdown runs
+       payment_failed_ended  past_due: the window has closed, lessons are paused, a new card
+                             can still rescue the subscription Stripe has not yet cancelled
+       payment_failed_ended  cancelled: Stripe has cancelled, so the way back is to subscribe
+     Behind the PIN only. The child's screen never mentions money. */
+  if(sub.reason==='payment_failed'||sub.reason==='payment_failed_ended'){
+    const graceDate=sub.graceEnds?prettyDate(dpart(sub.graceEnds)):'';
+    const update=`<div class="row"><button class="btn" data-act="sub-manage" ${subBusy?'disabled':''}>Update your card</button></div>`;
+    const err=subMsg?`<p class="err">${esc(subMsg)}</p>`:'';
+    if(sub.reason==='payment_failed'){
+      const n=daysLeft(sub.graceEnds);
+      const count=n===null?'':(n<=1?'Last day to update your card':`${n} days left to update your card`);
+      return `<section class="card stack payfail">${head('Your last payment did not go through')}
+        ${count?`<p class="countdown" role="status"><b>${count}</b></p>`:''}
+        <p class="note" style="margin:0">Your card was declined when your subscription renewed, so nothing has been taken. Stripe, who handle payments for Spelling Nest, will try the card again.</p>
+        <p class="note" style="margin:0">Practice carries on as normal for now. ${graceDate?`If no payment has been taken by <b>${esc(graceDate)}</b>, lessons will pause and your subscription will be cancelled.`:'If no payment can be taken, lessons will pause and your subscription will be cancelled.'} Everything your family has done stays here either way.</p>
+        ${update}${err}</section>`;
+    }
+    if(sub.status==='past_due'){
+      return `<section class="card stack payfail">${head('Lessons are paused until a payment goes through')}
+        <p class="note" style="margin:0">We have not been able to take your subscription payment, so lessons are paused. Nothing has been taken and nothing is deleted.</p>
+        <p class="note" style="margin:0">Update your card and, once a payment goes through, practice starts again with everything where you left it.</p>
+        ${update}${err}</section>`;
+    }
+    return `<section class="card stack">${head('Your subscription has been cancelled')}
+      <p class="note" style="margin:0">We could not take a payment${graceDate?` by ${esc(graceDate)}`:''}, so the subscription has ended and lessons are paused. Nothing has been taken, and nothing is deleted: everything your family has done stays here.</p>
+      <p class="note" style="margin:0">Subscribe again and practice carries on where it left off.</p>
+      ${subChoose()}</section>`;
+  }
+  /* A past_due subscription with no recorded failure date, which v17 should never produce,
+     falls back to the 2.6 card: true, if less precise. */
   if(sub.status==='past_due'){
     const ends=sub.periodEnds?prettyDate(dpart(sub.periodEnds)):'';
     return `<section class="card stack payfail">${head('Your last payment did not go through')}
