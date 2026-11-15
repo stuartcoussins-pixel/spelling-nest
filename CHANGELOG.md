@@ -10,6 +10,37 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.6, 15 November 2026
+
+**A failed payment is no longer described as a cancellation.** When a renewal is declined,
+Stripe marks the subscription `past_due` and keeps trying the card. The app handled that state
+in the same branch as a cancellation, so a parent whose card had failed was told in Grown ups
+"You have cancelled, so there is nothing more to pay", which was untrue on both counts. They now
+see *Your last payment did not go through*: nothing has been taken, Stripe will try the card
+again, practice carries on until the end of the period, and if no payment can be taken by then
+lessons pause and nothing is deleted. One button, **Update your card**, opens the Stripe Customer
+Portal. It is shown behind the Grown ups PIN only; the child's screen never mentions money.
+Found by the production health check, Run 11.
+
+**`voice_changed` now answers the question it exists for** (health check SN-033). It used to
+fire on every change of the voice list, so a parent auditioning voices produced one event per
+tap, and it recorded only "chosen" or "auto". It now fires once, four seconds after the parent
+stops changing it, only if they ended on a different voice from the one they started with, and
+records the voice's name and language from the device's own list, plus how many they tried.
+
+**Also fixed:** the *Keep my subscription* button had carried a class with no style since it was
+added, so it rendered as a bare browser button.
+
+**Server side, the same day, no app change:** every paid invoice now records a
+`payment_succeeded` event, so the event stream shows successful renewals next to
+`payment_failed` (health check, Run 11). It is written by a database trigger on the `payments`
+table rather than by redeploying the Stripe webhook, and it flags a trial converting
+(`first_payment`) separately from a renewal, and a renewal paid after a decline
+(`after_failure`). Migrations `v15_payment_succeeded_event` and `v16_payment_succeeded_trigger`.
+Stripe's own failed card payment email was checked and was already switched on.
+
+41 automated checks for this release, with the 92 from 2.3 to 2.5 re run against the same file.
+
 ## 2.5, 7 November 2026
 
 **A practice test.** Every word on the list exactly once, in a shuffled order, all of them
