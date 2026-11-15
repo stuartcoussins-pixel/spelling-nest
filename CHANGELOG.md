@@ -10,6 +10,25 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.8, 15 November 2026
+
+**The subscribe wording now matches whether a free fortnight is owed.** The box a parent ticks
+to agree to the terms of sale told every family their card would be charged "when the free
+fortnight ends". The fortnight is offered once per family, on a first subscription, so a family
+subscribing again was agreeing to a fortnight they would not get, and was then charged on the
+day. They now read that, because they have subscribed before, there is no free fortnight this
+time, the card is charged today, and they can still cancel within 14 days for a full refund,
+which is what section 4 and the cancellation section of the terms of sale already say. The note
+under the buttons says the same. The app decides who is owed the trial by exactly the rule
+`create-checkout-session` uses, so the screen and the charge cannot disagree.
+
+Unchanged on purpose: the version 2 sign up plan screen, which only a family that has never
+subscribed ever sees.
+
+21 new automated checks across a beta family after its free year, a family cancelled for non
+payment, a family that cancelled and lapsed, and a never subscribed family, with the earlier
+suites rerun against the same file.
+
 ## 2.7, 15 November 2026
 
 **A countdown when a card is declined.** When a renewal fails, Grown ups now shows how many days
