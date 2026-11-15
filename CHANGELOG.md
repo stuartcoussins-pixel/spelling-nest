@@ -10,6 +10,18 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.9, 15 November 2026, with terms of sale version 1.1
+
+**Terms of sale version 1.1 published** at `spellingnest.co.uk/terms.html`, approved by Stuart.
+Two changes to version 1.0: it says plainly that a family subscribing again pays on the day it
+subscribes, with the 14 day right and a full refund if it cancels within 14 days, and it sets out
+the 14 days a family has to put right a failed payment before lessons pause and the subscription
+is cancelled. Both now match what the app does (2.7 and 2.8). Everything else is unchanged.
+
+**The app now records agreement to version 1.1** at checkout: `terms_version` sent to
+`create-checkout-session`, and carried into Stripe metadata on the sale, changed from `1.0` to
+`1.1`. The terms were published first, so no sale was ever recorded against a version not yet live.
+
 ## 2.8, 15 November 2026
 
 **The subscribe wording now matches whether a free fortnight is owed.** The box a parent ticks
