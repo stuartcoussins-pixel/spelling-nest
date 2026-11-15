@@ -10,6 +10,35 @@ Every entry below is taken from the commit that shipped it. Where the commit rec
 the feature log in the project notes disagree, the disagreement is stated rather than
 smoothed over.
 
+## 2.7, 15 November 2026
+
+**A countdown when a card is declined.** When a renewal fails, Grown ups now shows how many days
+are left to update the card, and the date on which lessons pause and the subscription is
+cancelled if no payment has been taken. On the last day it says *Last day to update your card*.
+After that date it says lessons are paused until a payment goes through, still with the card
+update button while the subscription can be rescued, and once Stripe has cancelled it says so
+and offers to subscribe again. It is behind the PIN only; the child sees Kit resting when
+lessons pause, and nothing about money.
+
+**The timeline is Stripe's own retry window, fourteen days**, which is what makes it fee safe:
+Stripe is set to Smart Retries, up to 8 attempts in 2 weeks, then cancel, and it never retries
+a hard decline such as a revoked card authority until a new card is added. Eight attempts in
+fourteen days is under the card networks' monthly reattempt ceiling. The grace length lives in
+one constant in `sn_subscription_state()` and must be changed with the Stripe setting.
+
+**A change of policy, recorded plainly:** a declined renewal used to keep access to the end of
+a period Stripe had already advanced and nobody had paid for. Access now lasts for the grace
+period, ends sooner if Stripe cancels first, and comes straight back when a payment goes through.
+
+Server side: migration `v17_payment_grace`, which adds `families.payment_failed_at`, set by a
+trigger on the first `payment_failed` event and cleared by a trigger on the next payment, and
+rewrites the gate function to use it. Proved on eight cases in a rolled back transaction first.
+
+Also in Stripe, the same day: *Send a Stripe hosted link for customers to confirm their payments
+when required* switched on, with Stripe's reminders at 3, 5 and 7 days.
+
+25 new automated checks, with the 133 from 2.3 to 2.6 rerun against the same file.
+
 ## 2.6, 15 November 2026
 
 **A failed payment is no longer described as a cancellation.** When a renewal is declined,
